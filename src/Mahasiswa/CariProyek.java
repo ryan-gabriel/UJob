@@ -9,12 +9,13 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.RenderingHints;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -24,8 +25,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+
+import Components.ProyekHeaderPanel;
+import Components.ProyekTabs;
 /**
  *
  * @author Rian G S
@@ -46,158 +49,86 @@ public class CariProyek extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         setBackground(Color.WHITE);
 
-        // Main container
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(245, 247, 250));
-        // Header
-        JPanel headerPanel = createHeaderPanel();
+        
+        ProyekHeaderPanel headerPanel = new ProyekHeaderPanel("Cari Proyek");
         mainPanel.add(headerPanel, BorderLayout.NORTH);
         
-        // Content panel
         JPanel contentPanel = createContentPanel();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         
         add(mainPanel);
     }
-    
-    private JPanel createHeaderPanel() {
-        JPanel headerPanel = new JPanel();
-        headerPanel.setLayout(new BorderLayout());
-        headerPanel.setBackground(new Color(37, 64, 143));
-        headerPanel.setPreferredSize(new Dimension(0, 250));
-        headerPanel.setBorder(new EmptyBorder(20,20,20,20));
-        // Navigation bar
-        JPanel navPanel = new JPanel(new BorderLayout());
-        navPanel.setBackground(new Color(37, 64, 143));
-        navPanel.setBorder(new EmptyBorder(15, 40, 15, 40));
-        
-        // Logo and brand
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        logoPanel.setOpaque(false);
-        
-        JLabel logoCircle = new JLabel("UJOB");
-        logoCircle.setPreferredSize(new Dimension(40, 40));
-        logoCircle.setHorizontalAlignment(SwingConstants.CENTER);
-        logoCircle.setVerticalAlignment(SwingConstants.CENTER);
-        logoCircle.setBackground(Color.WHITE);
-        logoCircle.setOpaque(true);
-        logoCircle.setForeground(new Color(37, 64, 143));
-        logoCircle.setFont(new Font("Arial", Font.BOLD, 12));
-        logoCircle.setBorder(BorderFactory.createEmptyBorder());
-        
-        JLabel brandLabel = new JLabel("UPI Job");
-        brandLabel.setForeground(Color.WHITE);
-        brandLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        brandLabel.setBorder(new EmptyBorder(0, 10, 0, 0));
-        
-        logoPanel.add(logoCircle);
-        logoPanel.add(brandLabel);
-        
-        // Navigation menu
-        JPanel menuPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 0));
-        menuPanel.setOpaque(false);
-        
-        String[] menuItems = {"Dashboard", "Profil", "Portofolio", "Lowongan", "Proyek", "Inbox"};
-        for (String item : menuItems) {
-            JLabel menuLabel = new JLabel(item);
-            menuLabel.setForeground(item.equals("Proyek") ? new Color(255, 215, 0) : Color.WHITE);
-            menuLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            menuLabel.setBorder(new EmptyBorder(5, 10, 5, 10));
-            if (item.equals("Proyek")) {
-                menuLabel.setFont(new Font("Arial", Font.BOLD, 14));
-            }
-            menuPanel.add(menuLabel);
-        }
-        
-        navPanel.add(logoPanel, BorderLayout.WEST);
-        navPanel.add(menuPanel, BorderLayout.EAST);
-        
-        headerPanel.add(navPanel, BorderLayout.NORTH);
-        
-        // Hero section
-        JPanel heroPanel = new JPanel();
-        heroPanel.setLayout(new BoxLayout(heroPanel, BoxLayout.Y_AXIS));
-        heroPanel.setBackground(new Color(120, 119, 198)); // Gradient effect simulation
-        heroPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
-        
-        JLabel heroTitle = new JLabel("Cari Teman & Bantu Proyek");
-        heroTitle.setForeground(Color.WHITE);
-        heroTitle.setFont(new Font("Arial", Font.BOLD, 28));
-        heroTitle.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        
-        JLabel heroSubtitle = new JLabel("Temukan kolaborator ideal dan bergabung dengan proyek menarik");
-        heroSubtitle.setForeground(Color.WHITE);
-        heroSubtitle.setFont(new Font("Arial", Font.PLAIN, 16));
-        heroSubtitle.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        heroSubtitle.setBorder(new EmptyBorder(10, 0, 0, 0));
-        
-        heroPanel.add(heroTitle);
-        heroPanel.add(heroSubtitle);
-        
-        headerPanel.add(heroPanel, BorderLayout.CENTER);
-        
-        return headerPanel;
-    }
+
     
     private JPanel createContentPanel() {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(new Color(245, 247, 250));
-        contentPanel.setBorder(new EmptyBorder(30, 40, 30, 40));
+        contentPanel.setBorder(new EmptyBorder(10, 40, 30, 40));
         
-        // Top section with tabs and search
-        JPanel topSection = new JPanel(new BorderLayout());
+        JPanel topSection = new JPanel(new GridBagLayout());
         topSection.setOpaque(false);
         
-        // Tabs panel
-        JPanel tabsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        tabsPanel.setOpaque(false);
-        
-        JButton cariTemanTab = new JButton("Cari Teman");
-        cariTemanTab.setPreferredSize(new Dimension(150, 45));
-        cariTemanTab.setBackground(Color.WHITE);
-        cariTemanTab.setForeground(Color.GRAY);
-        cariTemanTab.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.LIGHT_GRAY));
-        cariTemanTab.setFont(new Font("Arial", Font.PLAIN, 14));
-        cariTemanTab.setFocusPainted(false);
-        
-        JButton cariProyekTab = new JButton("Cari Proyek");
-        cariProyekTab.setPreferredSize(new Dimension(150, 45));
-        cariProyekTab.setBackground(Color.WHITE);
-        cariProyekTab.setForeground(new Color(37, 64, 143));
-        cariProyekTab.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(37, 64, 143)));
-        cariProyekTab.setFont(new Font("Arial", Font.BOLD, 14));
-        cariProyekTab.setFocusPainted(false);
-        
-        tabsPanel.add(cariTemanTab);
-        tabsPanel.add(cariProyekTab);
         
         // Search and button panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel searchPanel = new JPanel(new GridBagLayout());
         searchPanel.setOpaque(false);
         
         JTextField searchField = new JTextField("Cari nama...");
         searchField.setPreferredSize(new Dimension(200, 40));
         searchField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-            BorderFactory.createEmptyBorder(5, 15, 5, 15)
+            BorderFactory.createEmptyBorder(5, 10, 5, 15)
         ));
         searchField.setForeground(Color.GRAY);
         searchField.setFont(new Font("Arial", Font.PLAIN, 13));
+        
+        JPanel buatProyekBtnWrapper = new JPanel(new GridBagLayout());
+        buatProyekBtnWrapper.setOpaque(false);
+        buatProyekBtnWrapper.setBorder(new EmptyBorder(0, 20, 0, 0));
+        
+        GridBagConstraints buatProyekBtnWrapperGbc = new GridBagConstraints();
+        buatProyekBtnWrapperGbc.fill = GridBagConstraints.HORIZONTAL;
+        buatProyekBtnWrapperGbc.weightx = 1.0;
         
         JButton buatProyekBtn = new JButton("+ Buat Proyek Baru");
         buatProyekBtn.setPreferredSize(new Dimension(180, 40));
         buatProyekBtn.setBackground(new Color(34, 197, 94));
         buatProyekBtn.setForeground(Color.WHITE);
-        buatProyekBtn.setBorder(BorderFactory.createEmptyBorder());
+        buatProyekBtn.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         buatProyekBtn.setFont(new Font("Arial", Font.BOLD, 13));
         buatProyekBtn.setFocusPainted(false);
         
-        searchPanel.add(searchField);
-        searchPanel.add(buatProyekBtn);
+        buatProyekBtnWrapper.add(buatProyekBtn, buatProyekBtnWrapperGbc);
         
-        topSection.add(tabsPanel, BorderLayout.WEST);
-        topSection.add(searchPanel, BorderLayout.EAST);
+        GridBagConstraints searchPanelGbc = new GridBagConstraints();
+        searchPanelGbc.fill = GridBagConstraints.HORIZONTAL;
+        searchPanelGbc.insets = new Insets(0, 0, 0, 0); // spacing antara tombol
+        searchPanelGbc.weighty = 1.0;
         
+        searchPanelGbc.gridx = 0;
+        searchPanelGbc.weightx = 0.75;
+        searchPanel.add(searchField, searchPanelGbc);
+        
+        searchPanelGbc.gridx = 1;
+        searchPanelGbc.weightx = 0.25;
+        searchPanel.add(buatProyekBtnWrapper, searchPanelGbc);
+        
+        GridBagConstraints gbcTopSection = new GridBagConstraints();
+        
+        gbcTopSection.anchor = GridBagConstraints.CENTER;
+        gbcTopSection.insets = new Insets(10,10,10,10);
+        gbcTopSection.weightx = 1.0;
+        gbcTopSection.fill = GridBagConstraints.HORIZONTAL;
+        
+        gbcTopSection.gridx = 0;
+        gbcTopSection.gridy = 0;
+        
+        topSection.setBorder(new EmptyBorder(0,0,0,0));
+        
+        topSection.add(searchPanel, gbcTopSection);
+        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         contentPanel.add(topSection, BorderLayout.NORTH);
         
         // Projects scroll panel
@@ -309,8 +240,8 @@ public class CariProyek extends javax.swing.JFrame {
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
      */
-    @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    @SuppressWarnings("unused")
     private void initComponents() {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);

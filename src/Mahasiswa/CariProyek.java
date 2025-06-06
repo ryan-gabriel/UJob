@@ -28,6 +28,7 @@ public class CariProyek extends JFrame {
         JPanel contentPanel = createContentPanel();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
+    
         add(mainPanel);
     }
 
@@ -37,11 +38,10 @@ public class CariProyek extends JFrame {
         contentPanel.setBorder(new EmptyBorder(10, 40, 30, 40));
 
         // === TOP SECTION ===
-        JPanel topSection = new JPanel(new MigLayout("insets 0", "[grow]push[]", ""));
+        JPanel topSection = new JPanel(new MigLayout("insets 0", "[75%]50[25%]", "[150]"));
         topSection.setOpaque(false);
 
         JTextField searchField = new JTextField();
-        searchField.setPreferredSize(new Dimension(200, 40));
         searchField.setFont(new Font("Arial", Font.PLAIN, 13));
         searchField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Color.LIGHT_GRAY),
@@ -49,15 +49,15 @@ public class CariProyek extends JFrame {
         ));
 
         JButton buatProyekBtn = new JButton("+ Buat Proyek Baru");
-        buatProyekBtn.setPreferredSize(new Dimension(180, 40));
         buatProyekBtn.setBackground(new Color(34, 197, 94));
         buatProyekBtn.setForeground(Color.WHITE);
         buatProyekBtn.setFont(new Font("Arial", Font.BOLD, 13));
         buatProyekBtn.setFocusPainted(false);
 
-        topSection.add(searchField, "growx");
-        topSection.add(buatProyekBtn, "gapleft 20");
-        contentPanel.add(topSection);
+        topSection.add(searchField, "grow");
+        topSection.add(buatProyekBtn, "grow");
+
+        contentPanel.add(topSection, "growx, pushx");
 
         // === SCROLLABLE PROJECTS ===
         JPanel projectsPanel = createProjectsPanel();

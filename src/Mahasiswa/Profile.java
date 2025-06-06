@@ -23,13 +23,15 @@ public class Profile extends javax.swing.JFrame {
     public void initializeUi(){
         this.setTitle("Profile Mahasiswa");
         this.setLocationRelativeTo(null);
-        this.setResizable(false);
         this.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         MahasiswaNavigation navbar = new MahasiswaNavigation("Profile");
         this.setLayout(new java.awt.BorderLayout());
         this.add(navbar, java.awt.BorderLayout.NORTH);
         this.setSize(1200, 800);
-    }   
+
+        
+
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.

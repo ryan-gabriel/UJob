@@ -3,9 +3,16 @@ package Mahasiswa;
 import net.miginfocom.swing.MigLayout;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+
+import Auth.SessionManager;
 import Components.ProyekHeaderPanel;
+import Database.koneksi;
+import Models.Proyek;
 
 public class CariProyek extends JFrame {
 
@@ -40,6 +47,7 @@ public class CariProyek extends JFrame {
         // === TOP SECTION ===
         JPanel topSection = new JPanel(new MigLayout("insets 0", "[75%]50[25%]", "[150]"));
         topSection.setOpaque(false);
+        topSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         JTextField searchField = new JTextField();
         searchField.setFont(new Font("Arial", Font.PLAIN, 13));
@@ -47,12 +55,23 @@ public class CariProyek extends JFrame {
             BorderFactory.createLineBorder(Color.LIGHT_GRAY),
             BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
+        searchField.setPreferredSize(new Dimension(searchField.getPreferredSize().width, 40));
+        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         JButton buatProyekBtn = new JButton("+ Buat Proyek Baru");
         buatProyekBtn.setBackground(new Color(34, 197, 94));
         buatProyekBtn.setForeground(Color.WHITE);
         buatProyekBtn.setFont(new Font("Arial", Font.BOLD, 13));
         buatProyekBtn.setFocusPainted(false);
+        buatProyekBtn.setPreferredSize(new Dimension(buatProyekBtn.getPreferredSize().width, 40));
+        buatProyekBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        buatProyekBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                new FormProyek().setVisible(true);
+            }
+        });
 
         topSection.add(searchField, "grow");
         topSection.add(buatProyekBtn, "grow");
@@ -73,56 +92,66 @@ public class CariProyek extends JFrame {
         return contentPanel;
     }
 
-    private JPanel createProjectsPanel() {
-        JPanel projectsPanel = new JPanel(new MigLayout("wrap 2, gap 20 20, insets 0", "[grow][grow]", ""));
+   private JPanel createProjectsPanel() {
+        JPanel projectsPanel = new JPanel(new MigLayout("wrap 2, gap 20 20, insets 10", "[grow][grow]", ""));
         projectsPanel.setBackground(new Color(245, 247, 250));
 
-        String[][] projects = {
-            {"Aplikasi Pengingat Jadwal Kuliah Berbasis Mobile", "21 Mei 2025", "25 Mei 2025", "Membuat aplikasi mobile sederhana..."},
-            {"Sistem Pendaftaran Online untuk Organisasi Kampus", "21 Mei 2025", "25 Mei 2025", "Mengembangkan platform web..."},
-            {"Website E-Commerce untuk Produk Mahasiswa", "20 Mei 2025", "30 Mei 2025", "Membangun platform jual beli online..."},
-            {"Aplikasi Manajemen Keuangan Pribadi", "19 Mei 2025", "28 Mei 2025", "Mengembangkan aplikasi mobile..."},
-            {"Platform Sharing Catatan Kuliah", "18 Mei 2025", "27 Mei 2025", "Membuat website untuk berbagi catatan..."},
-            {"Sistem Informasi Perpustakaan Digital", "17 Mei 2025", "26 Mei 2025", "Mengembangkan sistem manajemen..."}
-        };
+        List<Proyek> proyekList;
+        try {
+            proyekList = koneksi.getInstance().getProyek(String.valueOf(SessionManager.getInstance().getId()));
+        } catch (Exception e) {
+            proyekList = new ArrayList<>();
+            e.printStackTrace();
+        }
 
-        for (String[] project : projects) {
-            JPanel card = createProjectCard(project[0], project[1], project[2], project[3]);
+        for (Proyek p : proyekList) {
+            JPanel card = createProjectCard(p);
             projectsPanel.add(card, "grow");
         }
 
         return projectsPanel;
     }
 
-    private JPanel createProjectCard(String title, String startDate, String endDate, String description) {
-        JPanel card = new JPanel(new MigLayout("wrap 1, fillx"));
+    private JPanel createProjectCard(Proyek proyek) {
+        JPanel card = new JPanel(new MigLayout("wrap 1, fillx, gapy 10"));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(230, 230, 230)),
             new EmptyBorder(20, 20, 20, 20)
         ));
 
-        JLabel titleLabel = new JLabel(title);
+        JLabel titleLabel = new JLabel(proyek.judul);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
         titleLabel.setForeground(new Color(37, 64, 143));
 
-        JLabel dateLabel = new JLabel("Diposting: " + startDate + " | Ditutup: " + endDate);
-        dateLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        dateLabel.setForeground(Color.GRAY);
+        JLabel infoLabel = new JLabel("Diposting: " + proyek.tanggalDibuat + " | Oleh: " + proyek.namaPemilik);
+        infoLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        infoLabel.setForeground(new Color(120, 120, 120));
 
-        JLabel descLabel = new JLabel("<html><p style='line-height:1.4'>" + description + "</p></html>");
-        descLabel.setFont(new Font("Arial", Font.PLAIN, 13));
-        descLabel.setForeground(Color.DARK_GRAY);
+        JTextArea descArea = new JTextArea(proyek.deskripsi);
+        descArea.setLineWrap(true);
+        descArea.setWrapStyleWord(true);
+        descArea.setEditable(false);
+        descArea.setOpaque(false);
+        descArea.setFont(new Font("Arial", Font.PLAIN, 13));
+        descArea.setForeground(new Color(60, 60, 60));
 
         JButton daftarBtn = new JButton("Daftar");
         daftarBtn.setBackground(new Color(37, 64, 143));
         daftarBtn.setForeground(Color.WHITE);
         daftarBtn.setFont(new Font("Arial", Font.BOLD, 12));
         daftarBtn.setFocusPainted(false);
+        daftarBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        // Event saat klik tombol
+        daftarBtn.addActionListener(_ -> {
+            // aksi daftar, misalnya tampilkan konfirmasi atau kirim ke DB
+            System.out.println("Daftar proyek: " + proyek.judul);
+        });
 
         card.add(titleLabel);
-        card.add(dateLabel);
-        card.add(descLabel);
+        card.add(infoLabel);
+        card.add(descArea, "growx");
         card.add(daftarBtn, "align left");
 
         return card;

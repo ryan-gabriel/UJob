@@ -6,6 +6,11 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+import javax.swing.JOptionPane;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -17,6 +22,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import Auth.SessionManager;
+import Database.koneksi;
+import Mahasiswa.Dashboard;
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
@@ -27,11 +36,12 @@ import javax.swing.border.EmptyBorder;
  * @author Rian G S
  */
 public class Login extends javax.swing.JFrame {
-
+    koneksi kon;
     /**
      * Creates new form Login
      */
     public Login() {
+        kon = new koneksi();
         initComponents();
         initializeUI();
     }
@@ -107,6 +117,9 @@ public class Login extends javax.swing.JFrame {
         desc.setFont(new Font("Arial", Font.PLAIN, 14));
         desc.setForeground(Color.WHITE);
         desc.setBackground(new Color(0, 0, 0, 0));
+
+        desc.setBorder(BorderFactory.createEmptyBorder());
+;
         
         gbc.gridy = 2;
         gbc.insets = new Insets(0, 0, 30, 0);
@@ -263,7 +276,40 @@ public class Login extends javax.swing.JFrame {
         gbc.gridy = 7;
         gbc.insets = new Insets(0, 0, 15, 0);
         loginContainer.add(loginButton, gbc);
-        
+
+        loginButton.addActionListener(_ -> {
+            String email = emailField.getText();
+            String password = new String(passwordField.getPassword());
+
+            String query = "SELECT * FROM user WHERE email = ? AND password = ?";
+
+            try {
+                koneksi kon = new koneksi();
+                PreparedStatement ps = kon.getConnection().prepareStatement(query);
+                ps.setString(1, email);
+                ps.setString(2, password);
+
+                ResultSet rs = ps.executeQuery();
+
+                if (!rs.next()) {
+                    JOptionPane.showMessageDialog(this, "Email atau password salah", "Login Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    String userId = rs.getString("user_id");  // atau rs.getInt("id") jika kamu mau
+                    String nama = rs.getString("nama");
+                    String role = rs.getString("role");
+
+                    SessionManager.getInstance().login(Integer.parseInt(userId), nama, email, role);
+
+                    new Dashboard().setVisible(true);
+                    this.dispose();
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat login", "Login Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         // Register link
         JLabel registerLink = new JLabel("Don't Have an Account Yet? Register");
         registerLink.setFont(new Font("Arial", Font.PLAIN, 11));

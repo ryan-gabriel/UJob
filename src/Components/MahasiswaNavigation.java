@@ -4,6 +4,11 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import Mahasiswa.CariProyek;
+import Mahasiswa.Dashboard;
+import Mahasiswa.Inbox;
+import Mahasiswa.Profile;
+
 public class MahasiswaNavigation extends JPanel {
     public MahasiswaNavigation(String activeMenu) {
         setLayout(new BorderLayout());
@@ -51,6 +56,31 @@ public class MahasiswaNavigation extends JPanel {
             menuLabel.setFont(new Font("Arial", item.equals(activeMenu) ? Font.BOLD : Font.PLAIN, 14));
             menuLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
             menuPanel.add(menuLabel);
+
+            menuLabel.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    if (item.equals("Dashboard")) {
+                        new Dashboard().setVisible(true);
+                        SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
+                    } else if (item.equals("Profile")) {
+                        new Profile().setVisible(true);
+                        SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
+                    } else if (item.equals("Portofolio")) {
+                        // Navigate to Portofolio
+                        System.out.println("Navigating to Portofolio");
+                    } else if (item.equals("Lowongan")) {
+                        // Navigate to Lowongan
+                        System.out.println("Navigating to Lowongan");
+                    } else if (item.equals("Proyek")) {
+                        new CariProyek().setVisible(true);
+                        SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
+                    } else if (item.equals("Inbox")) {
+                        new Inbox().setVisible(true);
+                        SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
+                    }
+                }
+            });
 
             if (i < menuItems.length - 1) {
                 menuPanel.add(Box.createRigidArea(new Dimension(30, 0)));

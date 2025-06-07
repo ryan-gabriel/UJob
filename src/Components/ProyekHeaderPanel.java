@@ -59,7 +59,7 @@ public class ProyekHeaderPanel extends JPanel {
         add(heroWrapper, BorderLayout.CENTER);
 
 
-        ProyekTabs tabsPanel = new ProyekTabs("Cari Proyek");
+        ProyekTabs tabsPanel = new ProyekTabs(activeTab);
 
         JPanel tabsWrapper = new JPanel();
         tabsWrapper.setOpaque(false);

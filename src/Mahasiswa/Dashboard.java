@@ -12,6 +12,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -22,6 +24,9 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import Components.MahasiswaNavigation;
+import Database.InboxDAO;
+
+import Models.Inbox;
 /**
  *
  * @author Rian G S
@@ -116,15 +121,11 @@ public class Dashboard extends javax.swing.JFrame {
         inboxItemsPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
         
         // Sample inbox items
-        String[][] inboxItems = {
-            {"Lowongan pengembang web dari PT Pactindo", "21 - 05 - 2025"},
-            {"Lowongan pengembang AI web dari perusahaan ABC", "21 - 05 - 2025"},
-            {"Dhafin meminta pertemanan", "21 - 05 - 2025"},
-            {"Anda menyukai lowongan Data Analyst dari perusahaan ACME", "21 - 05 - 2025"}
-        };
+        InboxDAO inboxDAO = new InboxDAO();
+        List<Inbox> inboxItems = inboxDAO.getRecentInbox();
         
-        for (String[] item : inboxItems) {
-            JPanel itemPanel = createInboxItem(item[0], item[1]);
+        for (Inbox item : inboxItems) {
+            JPanel itemPanel = createInboxItem(item.getIsi(), item.getTanggal());
             inboxItemsPanel.add(itemPanel);
             inboxItemsPanel.add(Box.createVerticalStrut(15));
         }

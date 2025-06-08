@@ -24,6 +24,12 @@ public class ProyekDAO {
             stmt.setString(3, deskripsi);
             stmt.setString(4, bidang);
             stmt.setString(5, "aktif");
+
+            String isiNotifikasi = "Anda membuat proyek baru dengan judul '" + judul + "'.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
+
+
             stmt.executeUpdate();
         } catch (Exception e) {
             System.out.println("Gagal menyimpan proyek: " + e.getMessage());
@@ -307,6 +313,21 @@ public class ProyekDAO {
         return getProyekAnggota(userId, "");
     }
 
+    public String getJudulProyek(String proyekId) {
+        try {
+            var sql = "SELECT judul FROM proyek WHERE proyek_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, proyekId);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("judul");
+            }
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil judul proyek: " + e.getMessage());
+        }
+        return null;
+    }
+
     public boolean tolakPengajuan(String proyekId, String userId) {
         try {
             var sql = "DELETE FROM pengajuan_proyek WHERE user_id = ? AND proyek_id = ?";
@@ -314,6 +335,10 @@ public class ProyekDAO {
             stmt.setString(1, userId);
             stmt.setString(2, proyekId);
             stmt.executeUpdate();
+
+            String isiNotifikasi = "Pengajuan mengikuti proyek '" + getJudulProyek(proyekId) + "' telah ditolak.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menolak pengajuan: " + e.getMessage());
@@ -335,6 +360,10 @@ public class ProyekDAO {
             stmt2.setString(2, proyekId);
             stmt2.executeUpdate();
 
+            String isiNotifikasi = "Pengajuan mengikuti proyek '" + getJudulProyek(proyekId) + "' telah diterima.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
+
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menerima pengajuan: " + e.getMessage());
@@ -344,11 +373,17 @@ public class ProyekDAO {
 
     public boolean hapusProyek(String proyekId, String userId) {
         try {
+            String isiNotifikasi = "Anda menghapus proyek dengan judul '" + getJudulProyek(proyekId) + "'";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+
             var sql = "DELETE FROM proyek WHERE proyek_id = ? AND user_id = ?";
             var stmt = con.prepareStatement(sql);
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
             stmt.executeUpdate();
+            
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
+
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menghapus proyek: " + e.getMessage());
@@ -362,6 +397,11 @@ public class ProyekDAO {
             var stmt = con.prepareStatement(sql);
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
+
+            String isiNotifikasi = "Anda menandai proyek '" + getJudulProyek(proyekId) + "' selesai.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
+
             stmt.executeUpdate();
             return true;
         } catch (Exception e) {
@@ -377,6 +417,11 @@ public class ProyekDAO {
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
             stmt.executeUpdate();
+
+            String isiNotifikasi = "Anda menutup pendaftaran proyek '" + getJudulProyek(proyekId) + "'.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
+
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menandai proyek ditutup: " + e.getMessage());
@@ -391,6 +436,11 @@ public class ProyekDAO {
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
             stmt.executeUpdate();
+
+            String isiNotifikasi = "Anda membuka pendaftaran untuk proyek '" + getJudulProyek(proyekId) + "'.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
+
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menandai proyek ditutup: " + e.getMessage());
@@ -448,6 +498,12 @@ public class ProyekDAO {
             var stmt = con.prepareStatement(sql);
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
+
+            UserDAO userDAO = new UserDAO();
+            String isiNotifikasi = "Anda mengeluarkan '" + userDAO.getNama(userId) + "' dari proyek'" + getJudulProyek(proyekId) + "'.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, userId, isiNotifikasi);
+
             stmt.executeUpdate();
             return true;
         } catch (Exception e) {
@@ -468,6 +524,23 @@ public class ProyekDAO {
             }
         } catch (Exception e) {
             System.out.println("Gagal memeriksa pemilik proyek: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean updateProyek(String proyekId, String judul, String deskripsi, String bidang) {
+        try {
+            var sql = "UPDATE proyek SET judul = ?, deskripsi = ?, bidang = ? WHERE proyek_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, judul);
+            stmt.setString(2, deskripsi);
+            stmt.setString(3, bidang);
+            stmt.setString(4, proyekId);
+            stmt.executeUpdate();
+
+            return true;
+        } catch (Exception e) {
+            System.out.println("Gagal memperbarui proyek: " + e.getMessage());
         }
         return false;
     }

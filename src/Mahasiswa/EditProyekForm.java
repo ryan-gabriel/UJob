@@ -1,15 +1,38 @@
 package Mahasiswa;
 
-import javax.swing.*;
-import javax.swing.border.*;
-import java.awt.*;
-import net.miginfocom.swing.MigLayout;
-import Database.ProyekDAO;
-import Components.ModernButton;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Window;
 
-public class FormProyek extends JFrame {
-    public FormProyek() {
-        setTitle("Tambah Proyek");
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+
+import Components.ModernButton;
+import Database.ProyekDAO;
+import Models.Proyek;
+import net.miginfocom.swing.MigLayout;
+
+public class EditProyekForm extends JFrame {
+    private Proyek proyek;
+
+    public EditProyekForm(Proyek proyek) {
+        this.proyek = proyek;
+        initializeUI();
+    }
+
+    public void initializeUI() {
+        setTitle("Edit Proyek");
         setSize(520, 480);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -47,16 +70,19 @@ public class FormProyek extends JFrame {
             new EmptyBorder(5, 10, 5, 10)
         ));
 
-        
-        ModernButton simpanButton = new ModernButton("Simpan Proyek", new Color(13, 110, 253), Color.WHITE, new Color(11, 94, 215));
+        // Prefill fields with existing proyek data
+        judulField.setText(proyek.judul);
+        deskripsiArea.setText(proyek.deskripsi);
+        bidangField.setText(proyek.bidang);
+
+        ModernButton simpanButton = new ModernButton("Simpan Perubahan", new Color(13, 110, 253), Color.WHITE, new Color(11, 94, 215));
         simpanButton.setPreferredSize(new Dimension(150, 40));
 
         ModernButton cancelButton = new ModernButton("Batal", new Color(220, 53, 69), Color.WHITE, new Color(200, 35, 51));
         cancelButton.setPreferredSize(new Dimension(150, 40));
-
         cancelButton.addActionListener(_ -> this.dispose());
 
-        JLabel titleLabel = new JLabel("Tambah Proyek Baru");
+        JLabel titleLabel = new JLabel("Edit Proyek");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         titleLabel.setForeground(new Color(37, 64, 143));
 
@@ -87,29 +113,34 @@ public class FormProyek extends JFrame {
                 return;
             }
 
-            ProyekDAO proyekDAO = new ProyekDAO();
-            proyekDAO.simpanProyek(judul, deskripsi, bidang);
+            try {
+                ProyekDAO proyekDAO = new ProyekDAO();
+                proyekDAO.updateProyek(proyek.proyekId, judul, deskripsi, bidang);
 
-            JOptionPane.showMessageDialog(this,
-                "✅ Proyek Disimpan:\n\nJudul: " + judul +
-                "\nDeskripsi: " + deskripsi +
-                "\nBidang: " + bidang,
-                "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                    "✅ Proyek berhasil diperbarui:\n\nJudul: " + judul +
+                    "\nDeskripsi: " + deskripsi +
+                    "\nBidang: " + bidang,
+                    "Sukses", JOptionPane.INFORMATION_MESSAGE);
 
-            // Tutup semua window selain FormProyek sebelum membuka ProyekSaya
-            for (Window window : Window.getWindows()) {
-                if (window != this && window instanceof JFrame && window.isDisplayable()) {
-                    window.dispose();
+                for (Window window : Window.getWindows()) {
+                    if (window != this && window instanceof JFrame && window.isDisplayable()) {
+                        window.dispose();
+                    }
                 }
+
+                new ProyekSaya().setVisible(true);
+                this.dispose();
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Gagal memperbarui proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-            new ProyekSaya().setVisible(true);
-            this.dispose();
         });
 
         setContentPane(panel);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new FormProyek().setVisible(true));
+        SwingUtilities.invokeLater(() -> {});
     }
 }

@@ -2,6 +2,7 @@ package Database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 
 public class DatabaseConnection {
     private static DatabaseConnection instance;
@@ -32,5 +33,16 @@ public class DatabaseConnection {
 
     public Connection getConnection() {
         return con;
+    }
+
+    public void execute(String sql, String... params) {
+        try (PreparedStatement stmt = con.prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) {
+                stmt.setString(i + 1, params[i]);
+            }
+            stmt.executeUpdate();
+        } catch (Exception e) {
+            System.out.println("Error executing prepared query: " + e.getMessage());
+        }
     }
 }

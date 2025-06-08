@@ -18,6 +18,12 @@ public class MahasiswaDAO {
             ps.setString(1, proyekId);
             ps.setInt(2, SessionManager.getInstance().getId());
             int result = ps.executeUpdate();
+
+            ProyekDAO proyekDAO = new ProyekDAO();
+            String isiNotifikasi = "Anda membatalkan pendaftaran ke proyek '" + proyekDAO.getJudulProyek(proyekId) + "'.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, String.valueOf(SessionManager.getInstance().getId()), isiNotifikasi);
+
             return result > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -32,6 +38,13 @@ public class MahasiswaDAO {
             stmt.setInt(1, SessionManager.getInstance().getId());
             stmt.setString(2, proyekId);
             stmt.executeUpdate();
+
+            ProyekDAO proyekDAO = new ProyekDAO();
+
+            String isiNotifikasi = "Anda melakukan pendaftaran ke proyek '" + proyekDAO.getJudulProyek(proyekId) + "'.";
+            String logSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql, String.valueOf(SessionManager.getInstance().getId()), isiNotifikasi);
+
             return true;
         } catch (Exception e) {
             System.out.println("Gagal mendaftar proyek: " + e.getMessage());

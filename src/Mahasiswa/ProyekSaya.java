@@ -159,7 +159,7 @@ public class ProyekSaya extends JFrame {
                 statusLabel.setBackground(new Color(76, 175, 80));
                 statusLabel.setForeground(Color.WHITE);
                 break;
-            case "tutup":
+            case "ditutup":
                 statusLabel.setBackground(new Color(255, 152, 0));
                 statusLabel.setForeground(Color.WHITE);
                 break;
@@ -179,6 +179,8 @@ public class ProyekSaya extends JFrame {
         JButton tutupPendaftaranBtn = createButton("Tutup Pendaftaran", new Color(255, 152, 0));
         JButton bukaPendaftaranBtn = createButton("Buka Pendaftaran", new Color(76, 175, 80));
         JButton tandaiSelesaiBtn = createButton("Tandai Selesai", new Color(96, 125, 139));
+        JButton editBtn = createButton("Edit Proyek", new Color(255, 193, 7)); // Kuning Amber
+
 
         // Button Panel yang akan diupdate dinamis
         JPanel buttonPanel = new JPanel(new GridLayout(0, 2, 10, 8));
@@ -191,6 +193,7 @@ public class ProyekSaya extends JFrame {
             buttonPanel.add(lihatAnggotaProyekBtn);
             
             if (!proyek.status.equals("selesai")) {
+                buttonPanel.add(editBtn);
                 buttonPanel.add(lihatPendaftaranAnggotaBtn);
                 
                 if (proyek.status.equals("aktif")) {
@@ -232,6 +235,15 @@ public class ProyekSaya extends JFrame {
             }
         });
 
+        editBtn.addActionListener(_ -> {
+            try {
+                new EditProyekForm(proyek).setVisible(true);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Gagal membuka form edit proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+
         lihatAnggotaProyekBtn.addActionListener(_ -> {
             try {
                 new AnggotaProyek(proyek.proyekId).setVisible(true);
@@ -262,7 +274,7 @@ public class ProyekSaya extends JFrame {
                     ProyekDAO proyekDAO = new ProyekDAO();
                     proyekDAO.tutupProyek(proyek.proyekId, String.valueOf(SessionManager.getInstance().getId()));
                     
-                    proyek.status = "tutup";
+                    proyek.status = "ditutup";
                     
                     statusLabel.setText("Status: TUTUP");
                     statusLabel.setBackground(new Color(255, 152, 0));

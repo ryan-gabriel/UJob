@@ -90,4 +90,18 @@ public class UserDAO {
         }
         return false;
     }
+
+    public String getNama(String userId){
+        String query = "SELECT nama FROM user WHERE user_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("nama");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

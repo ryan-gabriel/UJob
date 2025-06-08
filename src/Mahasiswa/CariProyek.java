@@ -5,16 +5,18 @@ import net.miginfocom.swing.MigLayout;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 import Auth.SessionManager;
 import Components.ProyekHeaderPanel;
+import Database.MahasiswaDAO;
 import Database.ProyekDAO;
 import Models.Proyek;
 
 public class CariProyek extends JFrame {
+
+    private JPanel projectsPanel;
 
     public CariProyek() {
         initializeUI();
@@ -35,7 +37,6 @@ public class CariProyek extends JFrame {
         JPanel contentPanel = createContentPanel();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
-    
         add(mainPanel);
     }
 
@@ -45,10 +46,9 @@ public class CariProyek extends JFrame {
         contentPanel.setBorder(new EmptyBorder(10, 40, 30, 40));
 
         // === TOP SECTION ===
-        JPanel topSection = new JPanel(new MigLayout("insets 0", "[50%]10[15%]50[25%]", "[150]"));
-        topSection.setOpaque(false);    
+        JPanel topSection = new JPanel(new MigLayout("insets 0", "[50%]10[15%]50[25%]", "[]"));
+        topSection.setOpaque(false);
         topSection.add(Box.createHorizontalGlue(), "span, growx, pushx");
-        topSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         JTextField searchField = new JTextField();
         searchField.setFont(new Font("Arial", Font.PLAIN, 13));
@@ -56,60 +56,59 @@ public class CariProyek extends JFrame {
             BorderFactory.createLineBorder(Color.LIGHT_GRAY),
             BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
-        searchField.setPreferredSize(new Dimension(searchField.getPreferredSize().width, 40));
-        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         JButton searchBtn = new JButton("Search");
         searchBtn.setBackground(Color.BLUE);
         searchBtn.setForeground(Color.WHITE);
         searchBtn.setFont(new Font("Arial", Font.BOLD, 13));
         searchBtn.setFocusPainted(false);
-        searchBtn.setPreferredSize(new Dimension(searchBtn.getPreferredSize().width, 40));
-        searchBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         JButton buatProyekBtn = new JButton("+ Buat Proyek Baru");
         buatProyekBtn.setBackground(new Color(34, 197, 94));
         buatProyekBtn.setForeground(Color.WHITE);
         buatProyekBtn.setFont(new Font("Arial", Font.BOLD, 13));
         buatProyekBtn.setFocusPainted(false);
-        buatProyekBtn.setPreferredSize(new Dimension(buatProyekBtn.getPreferredSize().width, 40));
-        buatProyekBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        buatProyekBtn.addActionListener(_ -> new FormProyek().setVisible(true));
 
-        buatProyekBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                new FormProyek().setVisible(true);
-            }
-        });
-
-        topSection.add(searchField, "grow");
-        topSection.add(searchBtn, "grow");
-        topSection.add(buatProyekBtn, "grow");
+        topSection.add(searchField, "growx");
+        topSection.add(searchBtn, "growx");
+        topSection.add(buatProyekBtn, "growx");
 
         contentPanel.add(topSection, "growx, pushx");
 
-        // === SCROLLABLE PROJECTS ===
-        JPanel projectsPanel = createProjectsPanel();
+        // === SCROLLABLE PROJECTS PANEL ===
+        projectsPanel = createProjectsPanel("");
         JScrollPane scrollPane = new JScrollPane(projectsPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setBackground(new Color(245, 247, 250));
         scrollPane.getViewport().setBackground(new Color(245, 247, 250));
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         contentPanel.add(scrollPane, "grow");
+
+        // === SEARCH FUNCTION ===
+        searchBtn.addActionListener(_ -> {
+            String query = searchField.getText().trim();
+            JPanel newProjectsPanel = createProjectsPanel(query);
+            scrollPane.setViewportView(newProjectsPanel);
+            projectsPanel = newProjectsPanel;
+        });
+
         return contentPanel;
     }
 
-   private JPanel createProjectsPanel() {
-        JPanel projectsPanel = new JPanel(new MigLayout("wrap 2, gap 20 20, insets 10", "[grow][grow]", ""));
-        projectsPanel.setBackground(new Color(245, 247, 250));
+    private JPanel createProjectsPanel(String query) {
+        JPanel panel = new JPanel(new MigLayout("wrap 2, gap 20 20, insets 10", "[grow][grow]", ""));
+        panel.setBackground(new Color(245, 247, 250));
 
         List<Proyek> proyekList;
         try {
             ProyekDAO proyekDAO = new ProyekDAO();
-            proyekList = proyekDAO.getProyek(String.valueOf(SessionManager.getInstance().getId()));
+            String userId = String.valueOf(SessionManager.getInstance().getId());
+            proyekList = (query != null && !query.isEmpty()) ?
+                proyekDAO.getProyek(userId, query) :
+                proyekDAO.getProyek(userId);
         } catch (Exception e) {
             proyekList = new ArrayList<>();
             e.printStackTrace();
@@ -117,10 +116,10 @@ public class CariProyek extends JFrame {
 
         for (Proyek p : proyekList) {
             JPanel card = createProjectCard(p);
-            projectsPanel.add(card, "grow");
+            panel.add(card, "grow");
         }
 
-        return projectsPanel;
+        return panel;
     }
 
     private JPanel createProjectCard(Proyek proyek) {
@@ -146,6 +145,7 @@ public class CariProyek extends JFrame {
         descArea.setOpaque(false);
         descArea.setFont(new Font("Arial", Font.PLAIN, 13));
         descArea.setForeground(new Color(60, 60, 60));
+        descArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
         JButton daftarBtn = new JButton("Daftar");
         daftarBtn.setBackground(new Color(37, 64, 143));
@@ -154,23 +154,29 @@ public class CariProyek extends JFrame {
         daftarBtn.setFocusPainted(false);
         daftarBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        // Event saat klik tombol
         daftarBtn.addActionListener(_ -> {
-            // aksi daftar, misalnya tampilkan konfirmasi atau kirim ke DB
-            System.out.println("Daftar proyek: " + proyek.judul);
+            try {
+                MahasiswaDAO mahasiswaDAO = new MahasiswaDAO();
+                mahasiswaDAO.daftarProyek(proyek.proyekId);
+                JOptionPane.showMessageDialog(this, "Berhasil mendaftar proyek!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                JPanel parentPanel = (JPanel) card.getParent();
+                parentPanel.remove(card);
+                parentPanel.revalidate();
+                parentPanel.repaint();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Gagal mendaftar proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         card.add(titleLabel);
         card.add(infoLabel);
         card.add(descArea, "growx");
-        card.add(daftarBtn, "align left");
+        card.add(daftarBtn, "growx");
 
         return card;
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new CariProyek().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new CariProyek().setVisible(true));
     }
 }

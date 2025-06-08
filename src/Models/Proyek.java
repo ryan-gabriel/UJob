@@ -8,8 +8,9 @@ public class Proyek {
     public String deskripsi;
     public String bidang;
     public String tanggalDibuat;
+    public String status;
 
-    public Proyek(String proyekId, String userId, String namaPemilik, String judul, String deskripsi, String bidang, String tanggalDibuat) {
+    public Proyek(String proyekId, String userId, String namaPemilik, String judul, String deskripsi, String bidang, String tanggalDibuat, String status) {
         this.proyekId = proyekId;
         this.userId = userId;
         this.namaPemilik = namaPemilik;
@@ -17,5 +18,6 @@ public class Proyek {
         this.deskripsi = deskripsi;
         this.bidang = bidang;
         this.tanggalDibuat = tanggalDibuat;
+        this.status = status;
     }
 }

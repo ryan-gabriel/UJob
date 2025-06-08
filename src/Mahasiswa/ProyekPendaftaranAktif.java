@@ -11,10 +11,13 @@ import javax.swing.border.EmptyBorder;
 
 import Auth.SessionManager;
 import Components.ProyekHeaderPanel;
+import Database.MahasiswaDAO;
 import Database.ProyekDAO;
 import Models.Proyek;
 
 public class ProyekPendaftaranAktif extends JFrame {
+
+    private JPanel projectsPanel;
 
     public ProyekPendaftaranAktif() {
         initializeUI();
@@ -69,7 +72,7 @@ public class ProyekPendaftaranAktif extends JFrame {
         contentPanel.add(topSection, "growx, pushx");
 
         // === SCROLLABLE PROJECTS ===
-        JPanel projectsPanel = createProjectsPanel();
+        projectsPanel = createProjectsPanel("");
         JScrollPane scrollPane = new JScrollPane(projectsPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.setBackground(new Color(245, 247, 250));
@@ -78,11 +81,18 @@ public class ProyekPendaftaranAktif extends JFrame {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
+        searchBtn.addActionListener(_ -> {
+            String query = searchField.getText().trim();
+            JPanel newProjectsPanel = createProjectsPanel(query);
+            scrollPane.setViewportView(newProjectsPanel);
+            projectsPanel = newProjectsPanel;
+        });
+
         contentPanel.add(scrollPane, "grow");
         return contentPanel;
     }
 
-    private JPanel createProjectsPanel() {
+    private JPanel createProjectsPanel(String query) {
         JPanel projectsPanel = new JPanel(new MigLayout("wrap 2, gap 20 20, insets 10", "[grow][grow]", ""));
         projectsPanel.setBackground(new Color(245, 247, 250));
 
@@ -90,9 +100,15 @@ public class ProyekPendaftaranAktif extends JFrame {
         try {
             ProyekDAO proyekDAO = new ProyekDAO();
             proyekList = proyekDAO.getProyekSedangDidaftari(String.valueOf(SessionManager.getInstance().getId()));
+            String userId = String.valueOf(SessionManager.getInstance().getId());
+            proyekList = (query != null && !query.isEmpty()) ?
+                proyekDAO.getProyekSedangDidaftari(userId, query) :
+                proyekDAO.getProyekSedangDidaftari(userId);
         } catch (Exception e) {
             proyekList = new ArrayList<>();
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Gagal memuat data proyek: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
 
         for (Proyek p : proyekList) {
@@ -126,24 +142,34 @@ public class ProyekPendaftaranAktif extends JFrame {
         descArea.setOpaque(false);
         descArea.setFont(new Font("Arial", Font.PLAIN, 13));
         descArea.setForeground(new Color(60, 60, 60));
+        descArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
-        JButton daftarBtn = new JButton("Daftar");
-        daftarBtn.setBackground(new Color(37, 64, 143));
-        daftarBtn.setForeground(Color.WHITE);
-        daftarBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        daftarBtn.setFocusPainted(false);
-        daftarBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        JButton batalBtn = new JButton("Batal");
+        batalBtn.setBackground(Color.RED);
+        batalBtn.setForeground(Color.WHITE);
+        batalBtn.setFont(new Font("Arial", Font.BOLD, 12));
+        batalBtn.setFocusPainted(false);
+        batalBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // Event saat klik tombol
-        daftarBtn.addActionListener(_ -> {
-            // aksi daftar, misalnya tampilkan konfirmasi atau kirim ke DB
-            System.out.println("Daftar proyek: " + proyek.judul);
+        batalBtn.addActionListener(_ -> {
+            try {
+                MahasiswaDAO MahasiswaDAO = new MahasiswaDAO();
+                MahasiswaDAO.batalDaftarProyek(proyek.proyekId);
+                JOptionPane.showMessageDialog(this, "Berhasil Membatalkan pendaftaran proyek!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                JPanel parentPanel = (JPanel) card.getParent();
+                parentPanel.remove(card);
+                parentPanel.revalidate();
+                parentPanel.repaint();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Gagal membatalkan pendaftaran proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         card.add(titleLabel);
         card.add(infoLabel);
         card.add(descArea, "growx");
-        card.add(daftarBtn, "align left");
+        card.add(batalBtn, "growx");
 
         return card;
     }

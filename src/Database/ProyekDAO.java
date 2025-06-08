@@ -1,9 +1,11 @@
 package Database;
 
 import Models.Proyek;
+import Models.User;
 import Auth.SessionManager;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -51,10 +53,12 @@ public class ProyekDAO {
         }
     }
 
-    public List<Proyek> getProyek(String userId) {
+    public List<Proyek> getProyek(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
+        if (search == null) search = "";
+
         try {
-            var sql = """
+            String sql = """
                 SELECT * FROM proyek p
                 WHERE p.user_id != ?
                 AND NOT EXISTS (
@@ -65,14 +69,35 @@ public class ProyekDAO {
                     SELECT 1 FROM anggota_proyek ap 
                     WHERE ap.proyek_id = p.proyek_id AND ap.user_id = ?
                 )
-                AND status = ?
+                AND p.status = ?
             """;
 
-            var stmt = con.prepareStatement(sql);
-            stmt.setString(1, userId);
-            stmt.setString(2, userId);
-            stmt.setString(3, userId);
-            stmt.setString(4, "aktif");
+            // Tambah kondisi pencarian jika keyword tidak kosong
+            boolean hasSearch = !search.isBlank();
+            if (hasSearch) {
+                sql += """
+                    AND (
+                        p.judul LIKE ?
+                        OR p.deskripsi LIKE ?
+                        OR p.bidang LIKE ?
+                    )
+                """;
+            }
+
+            PreparedStatement stmt = con.prepareStatement(sql);
+
+            int idx = 1;
+            stmt.setString(idx++, userId); // p.user_id != ?
+            stmt.setString(idx++, userId); // NOT EXISTS pengajuan
+            stmt.setString(idx++, userId); // NOT EXISTS anggota
+            stmt.setString(idx++, "aktif"); // p.status = 'aktif'
+
+            if (hasSearch) {
+                String keyword = "%" + search + "%";
+                stmt.setString(idx++, keyword); // LIKE judul
+                stmt.setString(idx++, keyword); // LIKE deskripsi
+                stmt.setString(idx++, keyword); // LIKE bidang
+            }
 
             var rs = stmt.executeQuery();
             while (rs.next()) {
@@ -83,7 +108,8 @@ public class ProyekDAO {
                     rs.getString("judul"),
                     rs.getString("deskripsi"),
                     rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat"))
+                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                    rs.getString("status")
                 ));
             }
 
@@ -94,18 +120,47 @@ public class ProyekDAO {
         return data;
     }
 
+    // Overload: jika search tidak diberikan, gunakan string kosong
+    public List<Proyek> getProyek(String userId) {
+        return getProyek(userId, "");
+    }
+
     // Mendapatkan daftar proyek yang sedang didaftari user (pengajuan belum diterima)
-    public List<Proyek> getProyekSedangDidaftari(String userId) {
+    public List<Proyek> getProyekSedangDidaftari(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
+
+        if (search == null) search = "";
+        boolean isSearching = !search.trim().isEmpty();
+
         try {
-            var sql = """
+            String sql = """
                 SELECT p.* FROM proyek p
                 JOIN pengajuan_proyek pp ON p.proyek_id = pp.proyek_id
                 WHERE pp.user_id = ? AND p.status = ?
             """;
+
+            if (isSearching) {
+                sql += """
+                    AND (
+                        p.judul LIKE ?
+                        OR p.deskripsi LIKE ?
+                        OR p.bidang LIKE ?
+                    )
+                """;
+            }
+
             var stmt = con.prepareStatement(sql);
-            stmt.setString(1, userId);
-            stmt.setString(2, "aktif");
+            int idx = 1;
+            stmt.setString(idx++, userId);
+            stmt.setString(idx++, "aktif");
+
+            if (isSearching) {
+                String keyword = "%" + search + "%";
+                stmt.setString(idx++, keyword);
+                stmt.setString(idx++, keyword);
+                stmt.setString(idx++, keyword);
+            }
+
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 data.add(new Proyek(
@@ -115,21 +170,53 @@ public class ProyekDAO {
                     rs.getString("judul"),
                     rs.getString("deskripsi"),
                     rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat"))
+                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                    rs.getString("status")
                 ));
             }
+
         } catch (Exception e) {
             System.out.println("Gagal mengambil proyek sedang didaftari: " + e.getMessage());
         }
+
         return data;
     }
 
-    public List<Proyek> getProyekSendiri(String userId) {
+    public List<Proyek> getProyekSedangDidaftari(String userId) {
+        return getProyekSedangDidaftari(userId, "");
+    }
+
+
+    public List<Proyek> getProyekSendiri(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
+
+        if (search == null) search = "";
+        boolean isSearching = !search.trim().isEmpty();
+
         try {
-            var sql = "SELECT * FROM proyek WHERE user_id = ?";
+            String sql = "SELECT * FROM proyek WHERE user_id = ?";
+
+            if (isSearching) {
+                sql += """
+                    AND (
+                        judul LIKE ?
+                        OR deskripsi LIKE ?
+                        OR bidang LIKE ?
+                    )
+                """;
+            }
+
             var stmt = con.prepareStatement(sql);
-            stmt.setString(1, userId);
+            int idx = 1;
+            stmt.setString(idx++, userId);
+
+            if (isSearching) {
+                String keyword = "%" + search + "%";
+                stmt.setString(idx++, keyword);
+                stmt.setString(idx++, keyword);
+                stmt.setString(idx++, keyword);
+            }
+
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 data.add(new Proyek(
@@ -139,25 +226,56 @@ public class ProyekDAO {
                     rs.getString("judul"),
                     rs.getString("deskripsi"),
                     rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat"))
+                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                    rs.getString("status")
                 ));
             }
         } catch (Exception e) {
             System.out.println("Gagal mengambil proyek sendiri: " + e.getMessage());
         }
+
         return data;
     }
 
-    public List<Proyek> getProyekAnggota(String userId) {
+    public List<Proyek> getProyekSendiri(String userId) {
+        return getProyekSendiri(userId, "");
+    }
+
+
+    public List<Proyek> getProyekAnggota(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
+
+        if (search == null) search = "";
+        boolean isSearching = !search.trim().isEmpty();
+
         try {
-            var sql = """
+            String sql = """
                 SELECT p.* FROM proyek p
                 JOIN anggota_proyek ap ON p.proyek_id = ap.proyek_id
                 WHERE ap.user_id = ?
             """;
+
+            if (isSearching) {
+                sql += """
+                    AND (
+                        p.judul LIKE ?
+                        OR p.deskripsi LIKE ?
+                        OR p.bidang LIKE ?
+                    )
+                """;
+            }
+
             var stmt = con.prepareStatement(sql);
-            stmt.setString(1, userId);
+            int idx = 1;
+            stmt.setString(idx++, userId);
+
+            if (isSearching) {
+                String keyword = "%" + search + "%";
+                stmt.setString(idx++, keyword);
+                stmt.setString(idx++, keyword);
+                stmt.setString(idx++, keyword);
+            }
+
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 data.add(new Proyek(
@@ -167,16 +285,36 @@ public class ProyekDAO {
                     rs.getString("judul"),
                     rs.getString("deskripsi"),
                     rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat"))
+                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                    rs.getString("status")
                 ));
             }
         } catch (Exception e) {
             System.out.println("Gagal mengambil proyek sebagai anggota: " + e.getMessage());
         }
+
         return data;
     }
 
-    public boolean terimaPengajuan(String proyekId, String userId) {
+    public List<Proyek> getProyekAnggota(String userId) {
+        return getProyekAnggota(userId, "");
+    }
+
+    public boolean tolakPengajuan(String proyekId, String userId) {
+        try {
+            var sql = "DELETE FROM pengajuan_proyek WHERE user_id = ? AND proyek_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, userId);
+            stmt.setString(2, proyekId);
+            stmt.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            System.out.println("Gagal menolak pengajuan: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean terimaPengajuan(String proyekId, String userId){
         try {
             var insertSql = "INSERT INTO anggota_proyek (user_id, proyek_id) VALUES (?, ?)";
             var stmt1 = con.prepareStatement(insertSql);
@@ -193,20 +331,6 @@ public class ProyekDAO {
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menerima pengajuan: " + e.getMessage());
-            return false;
-        }
-    }
-
-    public boolean tolakPengajuan(String proyekId, String userId) {
-        try {
-            var sql = "DELETE FROM pengajuan_proyek WHERE user_id = ? AND proyek_id = ?";
-            var stmt = con.prepareStatement(sql);
-            stmt.setString(1, userId);
-            stmt.setString(2, proyekId);
-            stmt.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            System.out.println("Gagal menolak pengajuan: " + e.getMessage());
             return false;
         }
     }
@@ -239,7 +363,7 @@ public class ProyekDAO {
         }
     }
 
-    public boolean tandaiProyekTutup(String proyekId, String userId) {
+    public boolean tutupProyek(String proyekId, String userId) {
         try {
             var sql = "UPDATE proyek SET status = 'ditutup' WHERE proyek_id = ? AND user_id = ?";
             var stmt = con.prepareStatement(sql);
@@ -253,17 +377,91 @@ public class ProyekDAO {
         }
     }
     
-    public boolean daftarProyek(String userId, String proyekId) {
+    public boolean bukaProyek(String proyekId, String userId) {
         try {
-            var sql = "INSERT INTO pengajuan_proyek (user_id, proyek_id) VALUES (?, ?)";
+            var sql = "UPDATE proyek SET status = 'aktif' WHERE proyek_id = ? AND user_id = ?";
             var stmt = con.prepareStatement(sql);
-            stmt.setString(1, userId);
-            stmt.setString(2, proyekId);
+            stmt.setString(1, proyekId);
+            stmt.setString(2, userId);
             stmt.executeUpdate();
             return true;
         } catch (Exception e) {
-            System.out.println("Gagal mendaftar proyek: " + e.getMessage());
+            System.out.println("Gagal menandai proyek ditutup: " + e.getMessage());
             return false;
         }
+    }
+
+    public List<User> getAnggotaProyek(String proyekId) {
+        List<User> anggota = new ArrayList<>();
+        try {
+            var sql = "SELECT u.user_id, u.nama, u.email FROM anggota_proyek ap JOIN user u ON ap.user_id = u.user_id WHERE ap.proyek_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, proyekId);
+            var rs = stmt.executeQuery();
+            while (rs.next()) {
+                anggota.add(new User(
+                    rs.getInt("user_id"),
+                    rs.getString("nama"),
+                    rs.getString("email"),
+                    null,
+                    null
+                ));
+            }
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil anggota proyek: " + e.getMessage());
+        }
+        return anggota;
+    }
+
+    public List<User> getPendaftaranAnggotaProyek(String proyekId) {
+        List<User> pendaftaran = new ArrayList<>();
+        try {
+            var sql = "SELECT u.user_id, u.nama, u.email FROM pengajuan_proyek pp JOIN user u ON pp.user_id = u.user_id WHERE pp.proyek_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, proyekId);
+            var rs = stmt.executeQuery();
+            while (rs.next()) {
+                pendaftaran.add(new User(
+                    rs.getInt("user_id"),
+                    rs.getString("nama"),
+                    rs.getString("email"),
+                    null,
+                    null
+                ));
+            }
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil pendaftaran anggota proyek: " + e.getMessage());
+        }
+        return pendaftaran;
+    }
+
+    public boolean hapusAnggotaProyek(String proyekId, String userId) {
+        try {
+            var sql = "DELETE FROM anggota_proyek WHERE proyek_id = ? AND user_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, proyekId);
+            stmt.setString(2, userId);
+            stmt.executeUpdate();
+            return true;
+        } catch (Exception e) {
+            System.out.println("Gagal menghapus anggota proyek: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean isPemilikProyek(String proyekId, String userId) {
+        try {
+            var sql = "SELECT COUNT(*) FROM proyek WHERE proyek_id = ? AND user_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, proyekId);
+            stmt.setString(2, userId);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) {
+            System.out.println("Gagal memeriksa pemilik proyek: " + e.getMessage());
+        }
+        return false;
     }
 }

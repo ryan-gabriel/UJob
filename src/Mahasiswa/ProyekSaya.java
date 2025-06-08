@@ -16,6 +16,8 @@ import Models.Proyek;
 
 public class ProyekSaya extends JFrame {
 
+    private JPanel projectsPanel;
+
     public ProyekSaya() {
         initializeUI();
     }
@@ -35,7 +37,6 @@ public class ProyekSaya extends JFrame {
         JPanel contentPanel = createContentPanel();
         mainPanel.add(contentPanel, BorderLayout.CENTER);
 
-    
         add(mainPanel);
     }
 
@@ -69,7 +70,7 @@ public class ProyekSaya extends JFrame {
         contentPanel.add(topSection, "growx, pushx");
 
         // === SCROLLABLE PROJECTS ===
-        JPanel projectsPanel = createProjectsPanel();
+        projectsPanel = createProjectsPanel("");
         JScrollPane scrollPane = new JScrollPane(projectsPanel);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.setBackground(new Color(245, 247, 250));
@@ -79,10 +80,22 @@ public class ProyekSaya extends JFrame {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         contentPanel.add(scrollPane, "grow");
+        SwingUtilities.invokeLater(() -> {
+            scrollPane.getViewport().setViewPosition(new Point(0, 0));
+        });
+        
+        
+        searchBtn.addActionListener(_ -> {
+            String query = searchField.getText().trim();
+            JPanel newProjectsPanel = createProjectsPanel(query);
+            scrollPane.setViewportView(newProjectsPanel);
+            projectsPanel = newProjectsPanel;
+        });
+
         return contentPanel;
     }
     
-    private JPanel createProjectsPanel() {
+    private JPanel createProjectsPanel(String query) {
         JPanel projectsPanel = new JPanel(new MigLayout("wrap 2, gap 20 20, insets 10", "[grow][grow]", ""));
         projectsPanel.setBackground(new Color(245, 247, 250));
 
@@ -90,9 +103,15 @@ public class ProyekSaya extends JFrame {
         try {
             ProyekDAO proyekDAO = new ProyekDAO();
             proyekList = proyekDAO.getProyekSendiri(String.valueOf(SessionManager.getInstance().getId()));
+            String userId = String.valueOf(SessionManager.getInstance().getId());
+            proyekList = (query != null && !query.isEmpty()) ?
+                proyekDAO.getProyekSendiri(userId, query) :
+                proyekDAO.getProyekSendiri(userId);
         } catch (Exception e) {
             proyekList = new ArrayList<>();
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Gagal memuat data proyek: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
 
         for (Proyek p : proyekList) {
@@ -126,30 +145,239 @@ public class ProyekSaya extends JFrame {
         descArea.setOpaque(false);
         descArea.setFont(new Font("Arial", Font.PLAIN, 13));
         descArea.setForeground(new Color(60, 60, 60));
+        descArea.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
-        JButton daftarBtn = new JButton("Daftar");
-        daftarBtn.setBackground(new Color(37, 64, 143));
-        daftarBtn.setForeground(Color.WHITE);
-        daftarBtn.setFont(new Font("Arial", Font.BOLD, 12));
-        daftarBtn.setFocusPainted(false);
-        daftarBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // Status label untuk menunjukkan status proyek
+        JLabel statusLabel = new JLabel("Status: " + proyek.status.toUpperCase());
+        statusLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        statusLabel.setOpaque(true);
+        statusLabel.setBorder(new EmptyBorder(4, 8, 4, 8));
+        
+        // Set warna berdasarkan status
+        switch (proyek.status.toLowerCase()) {
+            case "aktif":
+                statusLabel.setBackground(new Color(76, 175, 80));
+                statusLabel.setForeground(Color.WHITE);
+                break;
+            case "tutup":
+                statusLabel.setBackground(new Color(255, 152, 0));
+                statusLabel.setForeground(Color.WHITE);
+                break;
+            case "selesai":
+                statusLabel.setBackground(new Color(96, 125, 139));
+                statusLabel.setForeground(Color.WHITE);
+                break;
+            default:
+                statusLabel.setBackground(Color.LIGHT_GRAY);
+                statusLabel.setForeground(Color.BLACK);
+        }
 
-        // Event saat klik tombol
-        daftarBtn.addActionListener(_ -> {
-            // aksi daftar, misalnya tampilkan konfirmasi atau kirim ke DB
-            System.out.println("Daftar proyek: " + proyek.judul);
+        // Create buttons
+        JButton hapusBtn = createButton("Hapus Proyek", new Color(244, 67, 54));
+        JButton lihatAnggotaProyekBtn = createButton("Lihat Anggota Proyek", new Color(33, 150, 243));
+        JButton lihatPendaftaranAnggotaBtn = createButton("Lihat Pendaftaran Anggota", new Color(156, 39, 176));
+        JButton tutupPendaftaranBtn = createButton("Tutup Pendaftaran", new Color(255, 152, 0));
+        JButton bukaPendaftaranBtn = createButton("Buka Pendaftaran", new Color(76, 175, 80));
+        JButton tandaiSelesaiBtn = createButton("Tandai Selesai", new Color(96, 125, 139));
+
+        // Button Panel yang akan diupdate dinamis
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 2, 10, 8));
+        buttonPanel.setOpaque(false);
+
+        // Method untuk update button panel
+        Runnable updateButtonPanel = () -> {
+            buttonPanel.removeAll();
+            buttonPanel.add(hapusBtn);
+            buttonPanel.add(lihatAnggotaProyekBtn);
+            
+            if (!proyek.status.equals("selesai")) {
+                buttonPanel.add(lihatPendaftaranAnggotaBtn);
+                
+                if (proyek.status.equals("aktif")) {
+                    buttonPanel.add(tutupPendaftaranBtn);
+                } else if (proyek.status.equals("ditutup")) {
+                    buttonPanel.add(bukaPendaftaranBtn);
+                }
+                
+                buttonPanel.add(tandaiSelesaiBtn);
+            }
+            
+            buttonPanel.revalidate();
+            buttonPanel.repaint();
+        };
+
+        hapusBtn.addActionListener(_ -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                this, 
+                "Apakah Anda yakin ingin menghapus proyek ini?", 
+                "Konfirmasi Hapus", 
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            );
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    ProyekDAO proyekDAO = new ProyekDAO();
+                    proyekDAO.hapusProyek(proyek.proyekId, String.valueOf(SessionManager.getInstance().getId()));
+                    JOptionPane.showMessageDialog(this, "Proyek berhasil dihapus", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                    
+                    // Remove card from parent panel
+                    JPanel parentPanel = (JPanel) card.getParent();
+                    parentPanel.remove(card);
+                    parentPanel.revalidate();
+                    parentPanel.repaint();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(this, "Gagal menghapus proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        lihatAnggotaProyekBtn.addActionListener(_ -> {
+            try {
+                new AnggotaProyek(proyek.proyekId).setVisible(true);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Gagal membuka halaman anggota proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        lihatPendaftaranAnggotaBtn.addActionListener(_ -> {
+            try {
+                new PendaftaranAnggotaProyek(proyek.proyekId).setVisible(true);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Gagal membuka halaman pendaftaran anggota: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        tutupPendaftaranBtn.addActionListener(_ -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                this, 
+                "Apakah Anda yakin ingin menutup pendaftaran proyek ini?", 
+                "Konfirmasi Tutup Pendaftaran", 
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    ProyekDAO proyekDAO = new ProyekDAO();
+                    proyekDAO.tutupProyek(proyek.proyekId, String.valueOf(SessionManager.getInstance().getId()));
+                    
+                    proyek.status = "tutup";
+                    
+                    statusLabel.setText("Status: TUTUP");
+                    statusLabel.setBackground(new Color(255, 152, 0));
+                    statusLabel.setForeground(Color.WHITE);
+                    
+                    updateButtonPanel.run();
+                    
+                    JOptionPane.showMessageDialog(this, "Pendaftaran proyek berhasil ditutup", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(this, "Gagal menutup pendaftaran proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        bukaPendaftaranBtn.addActionListener(_ -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                this, 
+                "Apakah Anda yakin ingin membuka kembali pendaftaran proyek ini?", 
+                "Konfirmasi Buka Pendaftaran", 
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    ProyekDAO proyekDAO = new ProyekDAO();
+                    proyekDAO.bukaProyek(proyek.proyekId, String.valueOf(SessionManager.getInstance().getId()));
+                    
+                    proyek.status = "aktif";
+                    
+                    statusLabel.setText("Status: AKTIF");
+                    statusLabel.setBackground(new Color(76, 175, 80));
+                    statusLabel.setForeground(Color.WHITE);
+                    
+                    updateButtonPanel.run();
+                    
+                    JOptionPane.showMessageDialog(this, "Pendaftaran proyek berhasil dibuka kembali", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(this, "Gagal membuka pendaftaran proyek: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+       
+        tandaiSelesaiBtn.addActionListener(_ -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                this, 
+                "Apakah Anda yakin ingin menandai proyek ini sebagai selesai?", 
+                "Konfirmasi Tandai Selesai", 
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    ProyekDAO proyekDAO = new ProyekDAO();
+                    proyekDAO.tandaiProyekSelesai(proyek.proyekId, String.valueOf(SessionManager.getInstance().getId()));
+                    
+                    proyek.status = "selesai";
+                    
+                    statusLabel.setText("Status: SELESAI");
+                    statusLabel.setBackground(new Color(96, 125, 139));
+                    statusLabel.setForeground(Color.WHITE);
+                    
+                    updateButtonPanel.run();
+                    
+                    JOptionPane.showMessageDialog(this, "Proyek berhasil ditandai selesai", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(this, "Gagal menandai proyek selesai: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
 
         card.add(titleLabel);
         card.add(infoLabel);
+        card.add(statusLabel);
         card.add(descArea, "growx");
-        card.add(daftarBtn, "align left");
+        
+        updateButtonPanel.run();
+        card.add(buttonPanel, "growx");
 
         return card;
     }
 
+    private JButton createButton(String text, Color backgroundColor) {
+        JButton button = new JButton(text);
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFont(new Font("Arial", Font.BOLD, 12));
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(backgroundColor.darker());
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(backgroundColor);
+            }
+        });
+        
+        return button;
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
             new ProyekSaya().setVisible(true);
         });
     }

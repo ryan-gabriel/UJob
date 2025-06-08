@@ -70,6 +70,7 @@ public class ProyekDAO {
                     WHERE ap.proyek_id = p.proyek_id AND ap.user_id = ?
                 )
                 AND p.status = ?
+                order by p.tanggal_dibuat DESC
             """;
 
             // Tambah kondisi pencarian jika keyword tidak kosong
@@ -149,6 +150,8 @@ public class ProyekDAO {
                 """;
             }
 
+            sql += " ORDER BY p.tanggal_dibuat DESC";
+
             var stmt = con.prepareStatement(sql);
             int idx = 1;
             stmt.setString(idx++, userId);
@@ -205,6 +208,8 @@ public class ProyekDAO {
                     )
                 """;
             }
+
+            sql += " ORDER BY tanggal_dibuat DESC";
 
             var stmt = con.prepareStatement(sql);
             int idx = 1;
@@ -264,6 +269,8 @@ public class ProyekDAO {
                     )
                 """;
             }
+
+            sql += " ORDER BY p.tanggal_dibuat DESC";
 
             var stmt = con.prepareStatement(sql);
             int idx = 1;

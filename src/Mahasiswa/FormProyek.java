@@ -5,8 +5,11 @@ import javax.swing.border.*;
 import java.awt.*;
 import net.miginfocom.swing.MigLayout;
 import Database.ProyekDAO;
+import Components.ModernButton;
 
 public class FormProyek extends JFrame {
+
+    
 
     public FormProyek() {
         setTitle("Tambah Proyek");
@@ -48,13 +51,13 @@ public class FormProyek extends JFrame {
         ));
 
         
-        JButton simpanButton = new JButton("Simpan Proyek");
-        simpanButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        simpanButton.setBackground(new Color(37, 64, 143));
-        simpanButton.setForeground(Color.WHITE);
-        simpanButton.setFocusPainted(false);
-        simpanButton.setPreferredSize(new Dimension(160, 40));
-        simpanButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        ModernButton simpanButton = new ModernButton("Simpan Proyek", new Color(13, 110, 253), Color.WHITE, new Color(11, 94, 215));
+        simpanButton.setPreferredSize(new Dimension(150, 40));
+
+        ModernButton cancelButton = new ModernButton("Batal", new Color(220, 53, 69), Color.WHITE, new Color(200, 35, 51));
+        cancelButton.setPreferredSize(new Dimension(150, 40));
+
+        cancelButton.addActionListener(_ -> this.dispose());
 
         JLabel titleLabel = new JLabel("Tambah Proyek Baru");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -71,7 +74,11 @@ public class FormProyek extends JFrame {
         panel.add(new JLabel("Bidang:"), "gapbottom 2");
         panel.add(bidangField);
 
-        panel.add(simpanButton, "span, center, gaptop 15");
+        JPanel buttonPanel = new JPanel(new MigLayout("", "[grow][push]", "[50]"));
+        buttonPanel.setOpaque(false);
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(simpanButton);
+        panel.add(buttonPanel, "span, growx");
 
         simpanButton.addActionListener(_ -> {
             String judul = judulField.getText().trim();
@@ -91,7 +98,13 @@ public class FormProyek extends JFrame {
                 "\nDeskripsi: " + deskripsi +
                 "\nBidang: " + bidang,
                 "Sukses", JOptionPane.INFORMATION_MESSAGE);
-
+            SwingUtilities.invokeLater(() -> {
+                JFrame topFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+                if (topFrame != null) {
+                    topFrame.dispose(); // Tutup window utama jika ada (halaman cari proyek)
+                }
+                new ProyekSaya().setVisible(true); // Buka halaman ProyekSaya
+            });
             this.dispose();
         });
 

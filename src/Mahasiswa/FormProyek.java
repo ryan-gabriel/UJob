@@ -2,7 +2,7 @@ package Mahasiswa;
 
 import javax.swing.*;
 
-import Database.koneksi;
+import Database.ProyekDAO;
 
 import java.awt.*;
 import net.miginfocom.swing.MigLayout;
@@ -47,8 +47,8 @@ public class FormProyek extends JFrame {
             String deskripsi = deskripsiArea.getText().trim();
             String bidang = bidangField.getText().trim();
 
-            koneksi kon = new koneksi();
-            kon.simpanProyek(judul, deskripsi, bidang);
+            ProyekDAO proyekDAO = new ProyekDAO();
+            proyekDAO.simpanProyek(judul, deskripsi, bidang);
 
             JOptionPane.showMessageDialog(this,
                 "✅ Proyek Disimpan:\n\nJudul: " + judul +

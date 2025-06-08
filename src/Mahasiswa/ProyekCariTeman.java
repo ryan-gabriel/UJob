@@ -6,8 +6,6 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import Components.ProyekHeaderPanel;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 
 public class ProyekCariTeman extends JFrame {
 

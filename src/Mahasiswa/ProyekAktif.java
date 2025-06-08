@@ -11,7 +11,7 @@ import javax.swing.border.EmptyBorder;
 
 import Auth.SessionManager;
 import Components.ProyekHeaderPanel;
-import Database.koneksi;
+import Database.ProyekDAO;
 import Models.Proyek;
 
 public class ProyekAktif extends JFrame {
@@ -88,7 +88,8 @@ public class ProyekAktif extends JFrame {
 
         List<Proyek> proyekList;
         try {
-            proyekList = koneksi.getInstance().getProyekAnggota(String.valueOf(SessionManager.getInstance().getId()));
+            ProyekDAO proyekDAO = new ProyekDAO();
+            proyekList = proyekDAO.getProyekAnggota(String.valueOf(SessionManager.getInstance().getId()));
         } catch (Exception e) {
             proyekList = new ArrayList<>();
             e.printStackTrace();

@@ -11,7 +11,7 @@ import javax.swing.border.EmptyBorder;
 
 import Auth.SessionManager;
 import Components.ProyekHeaderPanel;
-import Database.koneksi;
+import Database.ProyekDAO;
 import Models.Proyek;
 
 public class CariProyek extends JFrame {
@@ -45,8 +45,9 @@ public class CariProyek extends JFrame {
         contentPanel.setBorder(new EmptyBorder(10, 40, 30, 40));
 
         // === TOP SECTION ===
-        JPanel topSection = new JPanel(new MigLayout("insets 0", "[75%]50[25%]", "[150]"));
-        topSection.setOpaque(false);
+        JPanel topSection = new JPanel(new MigLayout("insets 0", "[50%]10[15%]50[25%]", "[150]"));
+        topSection.setOpaque(false);    
+        topSection.add(Box.createHorizontalGlue(), "span, growx, pushx");
         topSection.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         JTextField searchField = new JTextField();
@@ -57,6 +58,14 @@ public class CariProyek extends JFrame {
         ));
         searchField.setPreferredSize(new Dimension(searchField.getPreferredSize().width, 40));
         searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        JButton searchBtn = new JButton("Search");
+        searchBtn.setBackground(Color.BLUE);
+        searchBtn.setForeground(Color.WHITE);
+        searchBtn.setFont(new Font("Arial", Font.BOLD, 13));
+        searchBtn.setFocusPainted(false);
+        searchBtn.setPreferredSize(new Dimension(searchBtn.getPreferredSize().width, 40));
+        searchBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
         JButton buatProyekBtn = new JButton("+ Buat Proyek Baru");
         buatProyekBtn.setBackground(new Color(34, 197, 94));
@@ -74,6 +83,7 @@ public class CariProyek extends JFrame {
         });
 
         topSection.add(searchField, "grow");
+        topSection.add(searchBtn, "grow");
         topSection.add(buatProyekBtn, "grow");
 
         contentPanel.add(topSection, "growx, pushx");
@@ -98,7 +108,8 @@ public class CariProyek extends JFrame {
 
         List<Proyek> proyekList;
         try {
-            proyekList = koneksi.getInstance().getProyek(String.valueOf(SessionManager.getInstance().getId()));
+            ProyekDAO proyekDAO = new ProyekDAO();
+            proyekList = proyekDAO.getProyek(String.valueOf(SessionManager.getInstance().getId()));
         } catch (Exception e) {
             proyekList = new ArrayList<>();
             e.printStackTrace();

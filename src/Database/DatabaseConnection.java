@@ -2,13 +2,9 @@ package Database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-<<<<<<< HEAD
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-=======
-import java.sql.PreparedStatement;
->>>>>>> abb5e4277fd4437f8f1950800357337ec45de54b
 
 public class DatabaseConnection {
     private static final Logger LOGGER = Logger.getLogger(DatabaseConnection.class.getName());
@@ -44,7 +40,6 @@ public class DatabaseConnection {
         return getInstance().connection;
     }
 
-<<<<<<< HEAD
     // Metode untuk mendapatkan koneksi
    
 
@@ -60,16 +55,3 @@ public class DatabaseConnection {
         }
     }
 }
-=======
-    public void execute(String sql, String... params) {
-        try (PreparedStatement stmt = con.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                stmt.setString(i + 1, params[i]);
-            }
-            stmt.executeUpdate();
-        } catch (Exception e) {
-            System.out.println("Error executing prepared query: " + e.getMessage());
-        }
-    }
-}
->>>>>>> abb5e4277fd4437f8f1950800357337ec45de54b

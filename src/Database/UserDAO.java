@@ -83,7 +83,6 @@ public class UserDAO {
         return false;
     }
 
-<<<<<<< HEAD
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         String query = "SELECT * FROM user";
@@ -103,19 +102,5 @@ public class UserDAO {
             e.printStackTrace();
         }
         return users;
-=======
-    public String getNama(String userId){
-        String query = "SELECT nama FROM user WHERE user_id = ?";
-        try (PreparedStatement ps = conn.prepareStatement(query)) {
-            ps.setString(1, userId);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getString("nama");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
->>>>>>> abb5e4277fd4437f8f1950800357337ec45de54b
     }
 }

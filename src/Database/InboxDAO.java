@@ -18,7 +18,7 @@ public class InboxDAO {
     private final Connection conn;
 
     public InboxDAO() {
-        this.conn = new DatabaseConnection().getConnection();
+        conn = DatabaseConnection.getConnection();
     }
 
     private String formatTanggal(Timestamp timestamp) {

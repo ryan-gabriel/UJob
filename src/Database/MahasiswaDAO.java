@@ -10,7 +10,7 @@ public class MahasiswaDAO {
     private final Connection conn;
 
     public MahasiswaDAO() {
-        conn = new DatabaseConnection().getConnection();
+        conn = DatabaseConnection.getConnection();
     }
 
     public boolean batalDaftarProyek(String proyekId){

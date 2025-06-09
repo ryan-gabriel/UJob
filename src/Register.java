@@ -3,21 +3,12 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
+import Database.UserDAO; // Import UserDAO
+import Models.User; // Import User
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
-
-/**
- *
- * @author Rian G S
- */
 public class Register extends javax.swing.JFrame {
     private char defaultEchoChar;
-    /**
-     * Creates new form Register
-     */
+
     public Register() {
         initUI();
     }
@@ -32,94 +23,93 @@ public class Register extends javax.swing.JFrame {
         add(createBannerPanel());
         add(createRegisterPanel());
     }
-    
+
     private JPanel createBannerPanel() {
-    // Panel utama dengan GridBagLayout
-    JPanel panel = new JPanel(new GridBagLayout());
-    panel.setBackground(new Color(37, 64, 143));
-    panel.setBorder(new EmptyBorder(40, 40, 40, 40));
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(new Color(37, 64, 143));
+        panel.setBorder(new EmptyBorder(40, 40, 40, 40));
 
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.anchor = GridBagConstraints.CENTER;
-    gbc.gridx = 0;
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 0;
 
-    // 1) Logo bulat
-    CirclePanel logoCircle = new CirclePanel(80, Color.WHITE);
-    logoCircle.setLayout(new GridBagLayout());
-    JLabel logo = new JLabel("UJOB");
-    logo.setFont(new Font("Arial", Font.BOLD, 16));
-    logo.setForeground(new Color(37, 64, 143));
-    logoCircle.add(logo);
-    panel.add(logoCircle, gbc);
+        // 1) Logo bulat
+        CirclePanel logoCircle = new CirclePanel(80, Color.WHITE);
+        logoCircle.setLayout(new GridBagLayout());
+        JLabel logo = new JLabel("UJOB");
+        logo.setFont(new Font("Arial", Font.BOLD, 16));
+        logo.setForeground(new Color(37, 64, 143));
+        logoCircle.add(logo);
+        panel.add(logoCircle, gbc);
 
-    // 2) Judul “UJob Platform”
-    gbc.gridy = 1;
-    gbc.insets = new Insets(20, 0, 0, 0);
-    JLabel title = new JLabel("UJob Platform");
-    title.setFont(new Font("Arial", Font.BOLD, 24));
-    title.setForeground(Color.WHITE);
-    panel.add(title, gbc);
+        // 2) Judul “UJob Platform”
+        gbc.gridy = 1;
+        gbc.insets = new Insets(20, 0, 0, 0);
+        JLabel title = new JLabel("UJob Platform");
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setForeground(Color.WHITE);
+        panel.add(title, gbc);
 
-    // 3) Deskripsi rata-tengah (multi-line)
-    String[] descLines = {
-        "Platform pencarian kerja dan magang",
-        "eksklusif untuk mahasiswa Universitas",
-        "Pendidikan Indonesia"
-    };
-    JPanel descPanel = new JPanel();
-    descPanel.setOpaque(false);
-    descPanel.setLayout(new BoxLayout(descPanel, BoxLayout.Y_AXIS));
-    for (String line : descLines) {
-        JLabel lbl = new JLabel(line);
-        lbl.setFont(new Font("Arial", Font.BOLD, 14));
-        lbl.setForeground(Color.WHITE);
-        lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
-        descPanel.add(lbl);
-    }
-    gbc.gridy = 2;
-    gbc.insets = new Insets(20, 0, 0, 0);
-    panel.add(descPanel, gbc);
-
-    // 4) Custom check-icon (digambar Java2D)
-    Icon checkIcon = new Icon() {
-        private final int SIZE = 12;
-        @Override public int getIconWidth()  { return SIZE; }
-        @Override public int getIconHeight() { return SIZE; }
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setStroke(new BasicStroke(2f));
-            g2.setColor(Color.WHITE);
-            g2.drawLine(x, y + SIZE/2, x + SIZE/3, y + SIZE);
-            g2.drawLine(x + SIZE/3, y + SIZE, x + SIZE, y);
-            g2.dispose();
+        // 3) Deskripsi rata-tengah (multi-line)
+        String[] descLines = {
+            "Platform pencarian kerja dan magang",
+            "eksklusif untuk mahasiswa Universitas",
+            "Pendidikan Indonesia"
+        };
+        JPanel descPanel = new JPanel();
+        descPanel.setOpaque(false);
+        descPanel.setLayout(new BoxLayout(descPanel, BoxLayout.Y_AXIS));
+        for (String line : descLines) {
+            JLabel lbl = new JLabel(line);
+            lbl.setFont(new Font("Arial", Font.BOLD, 14));
+            lbl.setForeground(Color.WHITE);
+            lbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+            descPanel.add(lbl);
         }
-    };
+        gbc.gridy = 2;
+        gbc.insets = new Insets(20, 0, 0, 0);
+        panel.add(descPanel, gbc);
 
-    // 5) Daftar fitur dengan centang
-    String[] fitur = {
-        "Showcase portofolio akademik",
-        "Temukan peluang magang & kerja",
-        "Kolaborasi dengan sesama mahasiswa",
-        "Koneksi dengan dunia industri"
-    };
-    JPanel fiturPanel = new JPanel(new GridLayout(fitur.length, 1, 0, 5));
-    fiturPanel.setOpaque(false);
-    for (String text : fitur) {
-        JLabel lbl = new JLabel(text, checkIcon, SwingConstants.LEFT);
-        lbl.setFont(new Font("Arial", Font.PLAIN, 13));
-        lbl.setForeground(Color.WHITE);
-        fiturPanel.add(lbl);
+        // 4) Custom check-icon (digambar Java2D)
+        Icon checkIcon = new Icon() {
+            private final int SIZE = 12;
+            @Override public int getIconWidth()  { return SIZE; }
+            @Override public int getIconHeight() { return SIZE; }
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                    RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setStroke(new BasicStroke(2f));
+                g2.setColor(Color.WHITE);
+                g2.drawLine(x, y + SIZE/2, x + SIZE/3, y + SIZE);
+                g2.drawLine(x + SIZE/3, y + SIZE, x + SIZE, y);
+                g2.dispose();
+            }
+        };
+
+        // 5) Daftar fitur dengan centang
+        String[] fitur = {
+            "Showcase portofolio akademik",
+            "Temukan peluang magang & kerja",
+            "Kolaborasi dengan sesama mahasiswa",
+            "Koneksi dengan dunia industri"
+        };
+        JPanel fiturPanel = new JPanel(new GridLayout(fitur.length, 1, 0, 5));
+        fiturPanel.setOpaque(false);
+        for (String text : fitur) {
+            JLabel lbl = new JLabel(text, checkIcon, SwingConstants.LEFT);
+            lbl.setFont(new Font("Arial", Font.PLAIN, 13));
+            lbl.setForeground(Color.WHITE);
+            fiturPanel.add(lbl);
+        }
+        gbc.gridy = 3;
+        gbc.insets = new Insets(30, 0, 0, 0);
+        panel.add(fiturPanel, gbc);
+
+        return panel;
     }
-    gbc.gridy = 3;
-    gbc.insets = new Insets(30, 0, 0, 0);
-    panel.add(fiturPanel, gbc);
 
-    return panel;
-}
-    
     private JPanel createRegisterPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.WHITE);
@@ -148,12 +138,14 @@ public class Register extends javax.swing.JFrame {
         tab.add(registerTab);
         gbc.gridy = 0;
         panel.add(tab, gbc);
+        
         loginTab.addActionListener(e -> {
-        // buka window Login
-        new Login().setVisible(true);
-        // tutup window Register saat ini
-        SwingUtilities.getWindowAncestor(loginTab).dispose();
+            // buka window Login
+            new Login().setVisible(true);
+            // tutup window Register saat ini
+            SwingUtilities.getWindowAncestor(loginTab).dispose();
         });
+
         // Welcome text
         gbc.gridy = 1;
         gbc.insets = new Insets(20, 0, 5, 0);
@@ -194,8 +186,7 @@ public class Register extends javax.swing.JFrame {
         JPasswordField pwdField = new JPasswordField();
         pwdField.setPreferredSize(new Dimension(300, 35));
         pwdField.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        // placeholder + masking hanya setelah ketik
-        new GhostText(pwdField, "Minimal 8 karakter");
+        GhostText ghostText = new GhostText(pwdField, "Minimal 8 karakter");
 
         JButton eye = new JButton("👁");
         eye.setBorder(null);
@@ -224,7 +215,7 @@ public class Register extends javax.swing.JFrame {
         panel.add(roleLabel, gbc);
 
         JComboBox<String> combo = new JComboBox<>(
-            new String[]{"Mahasiswa", "Perusahaan", "Administrator"}
+            new String[]{"Mahasiswa", "Perusahaan"}
         );
         combo.setPreferredSize(new Dimension(300, 35));
         combo.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
@@ -243,12 +234,36 @@ public class Register extends javax.swing.JFrame {
         gbc.insets = new Insets(0, 0, 15, 0);
         panel.add(btn, gbc);
 
+        // Tambahkan ActionListener untuk tombol register
+        btn.addActionListener(e -> {
+            String nama = fullName.getText();
+            String emailAddress = email.getText();
+            String nimValue = nim.getText();
+            String passwordValue = new String(pwdField.getPassword());
+            String roleValue = combo.getSelectedItem().toString();
+
+            User newUser = new User(nama, emailAddress, passwordValue, roleValue);
+            UserDAO userDAO = new UserDAO();
+
+            // Cek jika email sudah terdaftar
+            if (userDAO.isEmailTaken(emailAddress)) {
+                JOptionPane.showMessageDialog(this, "Email sudah terdaftar!", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                // Lakukan pendaftaran
+                if (userDAO.register(newUser)) {
+                    JOptionPane.showMessageDialog(this, "Pendaftaran berhasil!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                    // Bisa ditambahkan logika untuk kembali ke halaman login atau lainnya
+                } else {
+                    JOptionPane.showMessageDialog(this, "Pendaftaran gagal, silakan coba lagi.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         return panel;
     }
 
-    // helper untuk label + field dengan placeholder
     private void addLabeledField(JPanel panel, String labelText, JTextField field,
-        int gridy, GridBagConstraints gbc) {
+                                  int gridy, GridBagConstraints gbc) {
         JLabel label = new JLabel(labelText);
         label.setFont(new Font("Arial", Font.PLAIN, 12));
         label.setForeground(Color.DARK_GRAY);
@@ -332,37 +347,8 @@ public class Register extends javax.swing.JFrame {
             }
         }
     }
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1200, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 700, Short.MAX_VALUE)
-        );
-
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new Register().setVisible(true));
     }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    // End of variables declaration//GEN-END:variables
 }

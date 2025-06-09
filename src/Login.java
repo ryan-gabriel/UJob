@@ -293,7 +293,6 @@ public class Login extends javax.swing.JFrame {
 
                 User user = userDAO.login(email, password);
 
-
                 if (user == null) {
                     JOptionPane.showMessageDialog(this, "Email atau password salah", "Login Error", JOptionPane.ERROR_MESSAGE);
                 } else {

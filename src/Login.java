@@ -9,6 +9,7 @@ import java.awt.Insets;
 
 import javax.swing.JOptionPane;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -122,28 +123,39 @@ public class Login extends javax.swing.JFrame {
         
         // Fitur-fitur dengan checkmark
         String[] features = {
-            "✓  Showcase portofolio akademik",
-            "✓  Temukan peluang magang & kerja",
-            "✓  Kolaborasi dengan sesama mahasiswa",
-            "✓  Koneksi dengan dunia industri"
+            "Showcase portofolio akademik",
+            "Temukan peluang magang & kerja",
+            "Kolaborasi dengan sesama mahasiswa",
+            "Koneksi dengan dunia industri"
         };
-        
+
         JPanel featuresPanel = new JPanel();
         featuresPanel.setLayout(new GridBagLayout());
         featuresPanel.setOpaque(false);
-        
+
         GridBagConstraints featureGbc = new GridBagConstraints();
         featureGbc.anchor = GridBagConstraints.WEST;
         featureGbc.insets = new Insets(5, 0, 5, 0);
-        
+
         for (int i = 0; i < features.length; i++) {
+            JPanel featureItem = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+            featureItem.setOpaque(false);
+
+            // Icon centang
+            JLabel iconLabel = new JLabel(new ImageIcon(getClass().getResource("/images/white-check.png")));
+            
+            // Label teks
             JLabel featureLabel = new JLabel(features[i]);
             featureLabel.setForeground(Color.WHITE);
             featureLabel.setFont(new Font("Arial", Font.PLAIN, 13));
             
+            featureItem.add(iconLabel);
+            featureItem.add(featureLabel);
+
             featureGbc.gridy = i;
-            featuresPanel.add(featureLabel, featureGbc);
+            featuresPanel.add(featureItem, featureGbc);
         }
+
         
         gbc.gridy = 3;
         gbc.insets = new Insets(0, 0, 0, 0);

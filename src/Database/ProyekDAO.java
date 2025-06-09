@@ -544,4 +544,19 @@ public class ProyekDAO {
         }
         return false;
     }
+
+    public String getOwnerId(String proyekId){
+        try {
+            var sql = "SELECT user_id FROM proyek WHERE proyek_id = ?";
+            var stmt = con.prepareStatement(sql);
+            stmt.setString(1, proyekId);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("user_id");
+            }
+        } catch (Exception e) {
+            System.out.println("Gagal mengambil owner id: " + e.getMessage());
+        }
+        return null;
+    }
 }

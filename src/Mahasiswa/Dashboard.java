@@ -11,32 +11,61 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import Auth.SessionManager;
 import Components.MahasiswaNavigation;
 import Database.InboxDAO;
-
+import Database.MahasiswaDAO;
+import Database.UserDAO;
 import Models.Inbox;
+
 /**
  *
  * @author Rian G S
  */
 public class Dashboard extends javax.swing.JFrame {
+    
+    private UserDAO userDAO;
+    private MahasiswaDAO mahasiswaDAO;
+
+    // Profile completion status
+    private boolean isDataDiriComplete;
+    private boolean isPendidikanComplete; 
+    private boolean isPortofolioComplete;
+    private boolean isPengalamanComplete;
+
+
+    private String namaUser;
+    private String pendidikan;
 
     /**
      * Creates new form Dashboard
      */
     public Dashboard() {
+        userDAO = new UserDAO();
+        mahasiswaDAO = new MahasiswaDAO();
+
+        isDataDiriComplete = mahasiswaDAO.isSetRingkasan();
+        isPendidikanComplete = mahasiswaDAO.isSetPendidikan();
+        isPortofolioComplete = mahasiswaDAO.isSetPortofolio();
+        isPengalamanComplete = mahasiswaDAO.isSetPengalaman();
+
+        namaUser = userDAO.getNama(String.valueOf(SessionManager.getInstance().getId()));
+        pendidikan = mahasiswaDAO.getCurrentMahasiswaPendidikan();
+
         initComponents();
         initializeUI();
     }
@@ -58,7 +87,7 @@ public class Dashboard extends javax.swing.JFrame {
             mainPanel.setBackground(Color.decode("#F2F2F7"));
             getContentPane().add(mainPanel, BorderLayout.CENTER); 
             
-            JLabel title = new JLabel("John Doe's Dashboard");
+            JLabel title = new JLabel(namaUser + "'s Dashboard");
             title.setFont(new Font("Arial", Font.BOLD, 24));
             title.setForeground(Color.decode("#333333"));
             title.setBorder(new EmptyBorder(0, 0, 20, 0));
@@ -97,7 +126,6 @@ public class Dashboard extends javax.swing.JFrame {
         };
         latestInboxContainer.setBorder(new EmptyBorder(25, 30, 25, 30));
         
-        // Header with title and info icon
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
         
@@ -105,7 +133,7 @@ public class Dashboard extends javax.swing.JFrame {
         title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setForeground(Color.decode("#333333"));
         
-        JLabel infoIcon = new JLabel("ⓘ");
+        JLabel infoIcon =  new JLabel(new ImageIcon(getClass().getResource("/images/info.png")));
         infoIcon.setFont(new Font("Arial", Font.PLAIN, 16));
         infoIcon.setForeground(Color.decode("#999999"));
         
@@ -114,7 +142,6 @@ public class Dashboard extends javax.swing.JFrame {
         
         latestInboxContainer.add(headerPanel, BorderLayout.NORTH);
 
-        // Inbox items
         JPanel inboxItemsPanel = new JPanel();
         inboxItemsPanel.setLayout(new BoxLayout(inboxItemsPanel, BoxLayout.Y_AXIS));
         inboxItemsPanel.setOpaque(false);
@@ -144,6 +171,11 @@ public class Dashboard extends javax.swing.JFrame {
         seeMoreBtn.setBorder(new EmptyBorder(8, 20, 8, 20));
         seeMoreBtn.setFocusPainted(false);
         seeMoreBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        
+        seeMoreBtn.addActionListener(_ -> {
+            new Mahasiswa.Inbox().setVisible(true);
+            this.dispose();
+        });
         
         buttonPanel.add(seeMoreBtn);
         latestInboxContainer.add(buttonPanel, BorderLayout.SOUTH);
@@ -211,6 +243,33 @@ public class Dashboard extends javax.swing.JFrame {
         return profileContainerWrapper;
     }
     
+    // Method untuk menghitung persentase completion
+    private int calculateCompletionPercentage() {
+        int completedItems = 0;
+        if (isDataDiriComplete) completedItems++;
+        if (isPendidikanComplete) completedItems++;
+        if (isPortofolioComplete) completedItems++;
+        if (isPengalamanComplete) completedItems++;
+        
+        return (completedItems * 100) / 4; // 4 adalah total item
+    }
+    
+    // Method untuk mendapatkan warna berdasarkan persentase
+    private Color getProgressColor(int percentage) {
+        if (percentage == 0) {
+            return Color.decode("#E5E5E5"); // Abu-abu untuk 0%
+        } else if (percentage == 25) {
+            return Color.decode("#FF6B6B"); // Merah untuk 25%
+        } else if (percentage == 50) {
+            return Color.decode("#FFD700"); // Kuning untuk 50%
+        } else if (percentage == 75) {
+            return Color.decode("#4ECDC4"); // Cyan untuk 75%
+        } else if (percentage == 100) {
+            return Color.decode("#28A745"); // Hijau untuk 100%
+        }
+        return Color.decode("#E5E5E5"); // Default
+    }
+    
     public JPanel profileStatus(){
         JPanel profileStatusContainer = new JPanel(new BorderLayout());
         profileStatusContainer.setOpaque(false);
@@ -224,7 +283,7 @@ public class Dashboard extends javax.swing.JFrame {
         title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setForeground(Color.decode("#333333"));
         
-        JLabel infoIcon = new JLabel("ⓘ");
+        JLabel infoIcon =  new JLabel(new ImageIcon(getClass().getResource("/images/info.png")));
         infoIcon.setFont(new Font("Arial", Font.PLAIN, 16));
         infoIcon.setForeground(Color.decode("#999999"));
         
@@ -237,6 +296,10 @@ public class Dashboard extends javax.swing.JFrame {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setOpaque(false);
         contentPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
+        
+        // Calculate current progress
+        final int progressPercentage = calculateCompletionPercentage();
+        final Color progressColor = getProgressColor(progressPercentage);
         
         // Left side - Progress circle
         JPanel progressPanel = new JPanel() {
@@ -254,18 +317,21 @@ public class Dashboard extends javax.swing.JFrame {
                 g2.setColor(Color.decode("#E5E5E5"));
                 g2.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
                 
-                // Progress arc (50%)
-                g2.setColor(Color.decode("#FFD700"));
-                g2.fillArc(centerX - radius, centerY - radius, radius * 2, radius * 2, 90, 180);
+                // Progress arc berdasarkan persentase
+                if (progressPercentage > 0) {
+                    g2.setColor(progressColor);
+                    int arcAngle = (int) (360 * (progressPercentage / 100.0));
+                    g2.fillArc(centerX - radius, centerY - radius, radius * 2, radius * 2, 90, arcAngle);
+                }
                 
                 // Inner white circle
                 g2.setColor(Color.WHITE);
                 g2.fillOval(centerX - 30, centerY - 30, 60, 60);
                 
-                // Text
-                g2.setColor(Color.decode("#FFD700"));
-                g2.setFont(new Font("Arial", Font.BOLD, 20));
-                String text = "50%";
+                // Text dengan warna yang sesuai
+                g2.setColor(progressPercentage == 0 ? Color.decode("#999999") : progressColor);
+                g2.setFont(new Font("Arial", Font.BOLD, 16));
+                String text = progressPercentage + "%";
                 int textWidth = g2.getFontMetrics().stringWidth(text);
                 g2.drawString(text, centerX - textWidth/2, centerY + 5);
                 
@@ -281,24 +347,25 @@ public class Dashboard extends javax.swing.JFrame {
         statusItemsPanel.setOpaque(false);
         statusItemsPanel.setBorder(new EmptyBorder(10, 20, 0, 0));
         
-        // Status items
+        // Status items berdasarkan variabel boolean
         String[][] statusItems = {
-            {"✓", "Sudah Mengisi Data Diri", "#28A745"},
-            {"✓", "Sudah Mengisi Pendidikan", "#28A745"},
-            {"✗", "Belum Mengisi Portofolio", "#DC3545"},
-            {"✗", "Belum Mengisi Pengalaman", "#DC3545"}
+            {isDataDiriComplete ? "check" : "cross", "Data Diri", isDataDiriComplete ? "#28A745" : "#DC3545"},
+            {isPendidikanComplete ? "check" : "cross", "Pendidikan", isPendidikanComplete ? "#28A745" : "#DC3545"},
+            {isPortofolioComplete ? "check" : "cross", "Portofolio", isPortofolioComplete ? "#28A745" : "#DC3545"},
+            {isPengalamanComplete ? "check" : "cross", "Pengalaman", isPengalamanComplete ? "#28A745" : "#DC3545"}
         };
         
         for (String[] item : statusItems) {
             JPanel itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
             itemPanel.setOpaque(false);
             
-            JLabel iconLabel = new JLabel(item[0]);
+            JLabel iconLabel = item[0].equals("check") ?  new JLabel(new ImageIcon(getClass().getResource("/images/check.png"))) :  new JLabel(new ImageIcon(getClass().getResource("/images/cross.png")));
             iconLabel.setFont(new Font("Arial", Font.BOLD, 14));
             iconLabel.setForeground(Color.decode(item[2]));
             iconLabel.setBorder(new EmptyBorder(0, 0, 0, 10));
             
-            JLabel textLabel = new JLabel(item[1]);
+            String prefix = item[0].equals("check") ? "Sudah Mengisi " : "Belum Mengisi ";
+            JLabel textLabel = new JLabel(prefix + item[1]);
             textLabel.setFont(new Font("Arial", Font.PLAIN, 14));
             textLabel.setForeground(Color.decode(item[2]));
             
@@ -315,50 +382,61 @@ public class Dashboard extends javax.swing.JFrame {
         return profileStatusContainer;
     }
     
-    public JPanel profileMahasiswa(){
+    // Method untuk mengupdate status completion (bisa dipanggil dari luar)
+    public void updateProfileStatus(boolean dataDiri, boolean pendidikan, boolean portofolio, boolean pengalaman) {
+        this.isDataDiriComplete = dataDiri;
+        this.isPendidikanComplete = pendidikan;
+        this.isPortofolioComplete = portofolio;
+        this.isPengalamanComplete = pengalaman;
+        
+        // Refresh UI
+        repaint();
+    }
+    
+    public JPanel profileMahasiswa() {
         JPanel profileMahasiswaContainer = new JPanel(new BorderLayout());
         profileMahasiswaContainer.setOpaque(false);
         profileMahasiswaContainer.setPreferredSize(new Dimension(300, 200));
-        
+
         // Content panel
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setOpaque(false);
-        contentPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
-        
+        contentPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+        // Icon (Profile Image)
+        ImageIcon profileIcon = new ImageIcon(getClass().getResource("/images/profile.png"));
+        Image image = profileIcon.getImage().getScaledInstance(64, 64, Image.SCALE_SMOOTH);
+        JLabel iconLabel = new JLabel(new ImageIcon(image));
+        iconLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+        contentPanel.add(iconLabel);
+        contentPanel.add(Box.createVerticalStrut(10)); // spacing antara ikon dan nama
+
         // Name
-        JLabel nameLabel = new JLabel("John Doe");
+        JLabel nameLabel = new JLabel(namaUser);
         nameLabel.setFont(new Font("Arial", Font.BOLD, 24));
         nameLabel.setForeground(Color.decode("#333333"));
         nameLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        
+
         // Status
         JLabel statusLabel = new JLabel("Mahasiswa");
         statusLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         statusLabel.setForeground(Color.decode("#666666"));
         statusLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
         statusLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
-        
+
         // University
-        JLabel universityLabel = new JLabel("Universitas Pendidikan Indonesia");
+        JLabel universityLabel = new JLabel(pendidikan);
         universityLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         universityLabel.setForeground(Color.decode("#666666"));
         universityLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
         universityLabel.setBorder(new EmptyBorder(2, 0, 0, 0));
-        
-        // Faculty
-        JLabel facultyLabel = new JLabel("Fakultas Teknik");
-        facultyLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        facultyLabel.setForeground(Color.decode("#666666"));
-        facultyLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        facultyLabel.setBorder(new EmptyBorder(2, 0, 0, 0));
-        
+
         contentPanel.add(nameLabel);
         contentPanel.add(statusLabel);
         contentPanel.add(universityLabel);
-        contentPanel.add(facultyLabel);
-        contentPanel.add(Box.createVerticalStrut(20));
-        
+        contentPanel.add(Box.createVerticalStrut(15));
+
         // See Profile button
         JButton seeProfileBtn = new JButton("See Profile");
         seeProfileBtn.setBackground(new Color(37, 64, 143));
@@ -368,14 +446,20 @@ public class Dashboard extends javax.swing.JFrame {
         seeProfileBtn.setFocusPainted(false);
         seeProfileBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         seeProfileBtn.setAlignmentX(JButton.CENTER_ALIGNMENT);
-        
+
+        seeProfileBtn.addActionListener(_ -> {
+            new Profile().setVisible(true);
+            this.dispose();
+        });
+
         contentPanel.add(seeProfileBtn);
-        
+
         profileMahasiswaContainer.add(contentPanel, BorderLayout.CENTER);
-        
+
         return profileMahasiswaContainer;
     }
-    
+
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

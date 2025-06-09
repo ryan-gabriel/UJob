@@ -10,10 +10,10 @@ public class Inbox {
     }
 
     public String getIsi() {
-        return isi;
+        return this.isi;
     }
 
     public String getTanggal() {
-        return tanggal;
+        return this.tanggal;
     }
 }

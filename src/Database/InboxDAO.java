@@ -34,7 +34,7 @@ public class InboxDAO {
 
     public List<Inbox> getRecentInbox() {
         List<Inbox> inboxList = new ArrayList<>();
-        String query = "SELECT isi, waktu FROM notifikasi WHERE user_id = ? ORDER BY waktu DESC LIMIT 5";
+        String query = "SELECT isi, waktu FROM notifikasi WHERE user_id = ? ORDER BY waktu DESC LIMIT 3";
 
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, SessionManager.getInstance().getId());
@@ -54,9 +54,9 @@ public class InboxDAO {
         return inboxList;
     }
 
-    public List<Inbox> getAllInbox() {
+    public List<Inbox> getCurrentUserAllInbox() {
         List<Inbox> inboxList = new ArrayList<>();
-        String query = "SELECT isi, tanggal FROM notifikasi WHERE user_id = ? ORDER BY tanggal DESC";
+        String query = "SELECT isi, waktu FROM notifikasi WHERE user_id = ? ORDER BY waktu DESC";
 
         try (PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setInt(1, SessionManager.getInstance().getId());
@@ -64,8 +64,8 @@ public class InboxDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String isi = rs.getString("isi");
-                    String tanggal = rs.getString("tanggal");
-                    inboxList.add(new Inbox(isi, tanggal));
+                    String waktu = rs.getString("waktu");
+                    inboxList.add(new Inbox(isi, waktu));
                 }
             }
         } catch (Exception e) {

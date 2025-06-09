@@ -25,6 +25,24 @@ public class ProyekDAO {
             stmt.setString(4, bidang);
             stmt.setString(5, "aktif");
             stmt.executeUpdate();
+
+            String getLastProyekIdSql = "SELECT proyek_id FROM proyek WHERE user_id = ? ORDER BY tanggal_dibuat DESC LIMIT 1";
+            var lastProyekStmt = con.prepareStatement(getLastProyekIdSql);
+            lastProyekStmt.setString(1, userId);
+            var lastProyekRs = lastProyekStmt.executeQuery();
+            if (lastProyekRs.next()) {
+                String proyekId = lastProyekRs.getString("proyek_id");
+                String insertKetuaSql = "INSERT INTO anggota_proyek (user_id, proyek_id, role) VALUES (?, ?, ?)";
+                var insertKetuaStmt = con.prepareStatement(insertKetuaSql);
+                insertKetuaStmt.setString(1, userId);
+                insertKetuaStmt.setString(2, proyekId);
+                insertKetuaStmt.setString(3, "ketua");
+                insertKetuaStmt.executeUpdate();
+            }
+
+            String isiNotifikasi = "Anda telah membuat proyek baru dengan judul '" + judul + "'.";
+            String notifikasiSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(notifikasiSql, userId, isiNotifikasi);
         } catch (Exception e) {
             System.out.println("Gagal menyimpan proyek: " + e.getMessage());
         }
@@ -43,7 +61,8 @@ public class ProyekDAO {
     }
 
     private String formatTanggal(Timestamp timestamp) {
-        if (timestamp == null) return "";
+        if (timestamp == null)
+            return "";
         try {
             LocalDateTime dateTime = timestamp.toLocalDateTime();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.forLanguageTag("id-ID"));
@@ -55,35 +74,36 @@ public class ProyekDAO {
 
     public List<Proyek> getProyek(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
-        if (search == null) search = "";
+        if (search == null)
+            search = "";
 
         try {
             String sql = """
-                SELECT * FROM proyek p
-                WHERE p.user_id != ?
-                AND NOT EXISTS (
-                    SELECT 1 FROM pengajuan_proyek pp 
-                    WHERE pp.proyek_id = p.proyek_id AND pp.user_id = ?
-                )
-                AND NOT EXISTS (
-                    SELECT 1 FROM anggota_proyek ap 
-                    WHERE ap.proyek_id = p.proyek_id AND ap.user_id = ?
-                )
-                AND p.status = ?
-                order by p.tanggal_dibuat DESC
-            """;
+                    SELECT * FROM proyek p
+                    WHERE p.user_id != ?
+                    AND NOT EXISTS (
+                        SELECT 1 FROM pengajuan_proyek pp
+                        WHERE pp.proyek_id = p.proyek_id AND pp.user_id = ?
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1 FROM anggota_proyek ap
+                        WHERE ap.proyek_id = p.proyek_id AND ap.user_id = ?
+                    )
+                    AND p.status = ?
+                    """;
 
             // Tambah kondisi pencarian jika keyword tidak kosong
             boolean hasSearch = !search.isBlank();
             if (hasSearch) {
                 sql += """
-                    AND (
-                        p.judul LIKE ?
-                        OR p.deskripsi LIKE ?
-                        OR p.bidang LIKE ?
-                    )
-                """;
+                        AND (
+                            p.judul LIKE ?
+                            OR p.deskripsi LIKE ?
+                            OR p.bidang LIKE ?
+                            )
+                            """;
             }
+            sql += "ORDER BY p.tanggal_dibuat DESC";
 
             PreparedStatement stmt = con.prepareStatement(sql);
 
@@ -103,15 +123,14 @@ public class ProyekDAO {
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 data.add(new Proyek(
-                    rs.getString("proyek_id"),
-                    rs.getString("user_id"),
-                    getNamaPemilik(rs.getString("user_id")),
-                    rs.getString("judul"),
-                    rs.getString("deskripsi"),
-                    rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
-                    rs.getString("status")
-                ));
+                        rs.getString("proyek_id"),
+                        rs.getString("user_id"),
+                        getNamaPemilik(rs.getString("user_id")),
+                        rs.getString("judul"),
+                        rs.getString("deskripsi"),
+                        rs.getString("bidang"),
+                        formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                        rs.getString("status")));
             }
 
         } catch (Exception e) {
@@ -126,28 +145,30 @@ public class ProyekDAO {
         return getProyek(userId, "");
     }
 
-    // Mendapatkan daftar proyek yang sedang didaftari user (pengajuan belum diterima)
+    // Mendapatkan daftar proyek yang sedang didaftari user (pengajuan belum
+    // diterima)
     public List<Proyek> getProyekSedangDidaftari(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
 
-        if (search == null) search = "";
+        if (search == null)
+            search = "";
         boolean isSearching = !search.trim().isEmpty();
 
         try {
             String sql = """
-                SELECT p.* FROM proyek p
-                JOIN pengajuan_proyek pp ON p.proyek_id = pp.proyek_id
-                WHERE pp.user_id = ? AND p.status = ?
-            """;
+                        SELECT p.* FROM proyek p
+                        JOIN pengajuan_proyek pp ON p.proyek_id = pp.proyek_id
+                        WHERE pp.user_id = ? AND p.status = ?
+                    """;
 
             if (isSearching) {
                 sql += """
-                    AND (
-                        p.judul LIKE ?
-                        OR p.deskripsi LIKE ?
-                        OR p.bidang LIKE ?
-                    )
-                """;
+                            AND (
+                                p.judul LIKE ?
+                                OR p.deskripsi LIKE ?
+                                OR p.bidang LIKE ?
+                            )
+                        """;
             }
 
             sql += " ORDER BY p.tanggal_dibuat DESC";
@@ -167,15 +188,14 @@ public class ProyekDAO {
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 data.add(new Proyek(
-                    rs.getString("proyek_id"),
-                    rs.getString("user_id"),
-                    getNamaPemilik(rs.getString("user_id")),
-                    rs.getString("judul"),
-                    rs.getString("deskripsi"),
-                    rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
-                    rs.getString("status")
-                ));
+                        rs.getString("proyek_id"),
+                        rs.getString("user_id"),
+                        getNamaPemilik(rs.getString("user_id")),
+                        rs.getString("judul"),
+                        rs.getString("deskripsi"),
+                        rs.getString("bidang"),
+                        formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                        rs.getString("status")));
             }
 
         } catch (Exception e) {
@@ -189,11 +209,11 @@ public class ProyekDAO {
         return getProyekSedangDidaftari(userId, "");
     }
 
-
     public List<Proyek> getProyekSendiri(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
 
-        if (search == null) search = "";
+        if (search == null)
+            search = "";
         boolean isSearching = !search.trim().isEmpty();
 
         try {
@@ -201,12 +221,12 @@ public class ProyekDAO {
 
             if (isSearching) {
                 sql += """
-                    AND (
-                        judul LIKE ?
-                        OR deskripsi LIKE ?
-                        OR bidang LIKE ?
-                    )
-                """;
+                            AND (
+                                judul LIKE ?
+                                OR deskripsi LIKE ?
+                                OR bidang LIKE ?
+                            )
+                        """;
             }
 
             sql += " ORDER BY tanggal_dibuat DESC";
@@ -225,15 +245,14 @@ public class ProyekDAO {
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 data.add(new Proyek(
-                    rs.getString("proyek_id"),
-                    userId,
-                    getNamaPemilik(userId),
-                    rs.getString("judul"),
-                    rs.getString("deskripsi"),
-                    rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
-                    rs.getString("status")
-                ));
+                        rs.getString("proyek_id"),
+                        userId,
+                        getNamaPemilik(userId),
+                        rs.getString("judul"),
+                        rs.getString("deskripsi"),
+                        rs.getString("bidang"),
+                        formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                        rs.getString("status")));
             }
         } catch (Exception e) {
             System.out.println("Gagal mengambil proyek sendiri: " + e.getMessage());
@@ -246,28 +265,28 @@ public class ProyekDAO {
         return getProyekSendiri(userId, "");
     }
 
-
     public List<Proyek> getProyekAnggota(String userId, String search) {
         List<Proyek> data = new ArrayList<>();
 
-        if (search == null) search = "";
+        if (search == null)
+            search = "";
         boolean isSearching = !search.trim().isEmpty();
 
         try {
             String sql = """
-                SELECT p.* FROM proyek p
-                JOIN anggota_proyek ap ON p.proyek_id = ap.proyek_id
-                WHERE ap.user_id = ?
-            """;
+                        SELECT p.* FROM proyek p
+                        JOIN anggota_proyek ap ON p.proyek_id = ap.proyek_id
+                        WHERE ap.user_id = ?
+                    """;
 
             if (isSearching) {
                 sql += """
-                    AND (
-                        p.judul LIKE ?
-                        OR p.deskripsi LIKE ?
-                        OR p.bidang LIKE ?
-                    )
-                """;
+                            AND (
+                                p.judul LIKE ?
+                                OR p.deskripsi LIKE ?
+                                OR p.bidang LIKE ?
+                            )
+                        """;
             }
 
             sql += " ORDER BY p.tanggal_dibuat DESC";
@@ -286,15 +305,14 @@ public class ProyekDAO {
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 data.add(new Proyek(
-                    rs.getString("proyek_id"),
-                    rs.getString("user_id"),
-                    getNamaPemilik(rs.getString("user_id")),
-                    rs.getString("judul"),
-                    rs.getString("deskripsi"),
-                    rs.getString("bidang"),
-                    formatTanggal(rs.getTimestamp("tanggal_dibuat")),
-                    rs.getString("status")
-                ));
+                        rs.getString("proyek_id"),
+                        rs.getString("user_id"),
+                        getNamaPemilik(rs.getString("user_id")),
+                        rs.getString("judul"),
+                        rs.getString("deskripsi"),
+                        rs.getString("bidang"),
+                        formatTanggal(rs.getTimestamp("tanggal_dibuat")),
+                        rs.getString("status")));
             }
         } catch (Exception e) {
             System.out.println("Gagal mengambil proyek sebagai anggota: " + e.getMessage());
@@ -314,6 +332,17 @@ public class ProyekDAO {
             stmt.setString(1, userId);
             stmt.setString(2, proyekId);
             stmt.executeUpdate();
+
+            UserDAO userDAO = new UserDAO();
+            String ownerId = getOwnerId(proyekId);
+            String isiNotifikasi1 = "Anda menolak pengajuan pendaftaran '" + userDAO.getNama(userId) + "' ke proyek anda dengan judul '" + getJudulProyek(proyekId) + "'.";
+            String logSql1 = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql1, ownerId, isiNotifikasi1);
+
+            String isiNotifikasi2 = "Pendaftaran anda ke proyek '" + getJudulProyek(proyekId) + "' telah DITOLAK.";
+            String logSql2 = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql2, userId, isiNotifikasi2);
+
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menolak pengajuan: " + e.getMessage());
@@ -321,7 +350,7 @@ public class ProyekDAO {
         }
     }
 
-    public boolean terimaPengajuan(String proyekId, String userId){
+    public boolean terimaPengajuan(String proyekId, String userId) {
         try {
             var insertSql = "INSERT INTO anggota_proyek (user_id, proyek_id) VALUES (?, ?)";
             var stmt1 = con.prepareStatement(insertSql);
@@ -335,6 +364,16 @@ public class ProyekDAO {
             stmt2.setString(2, proyekId);
             stmt2.executeUpdate();
 
+            UserDAO userDAO = new UserDAO();
+            String ownerId = getOwnerId(proyekId);
+            String isiNotifikasi1 = "Anda menerima pengajuan pendaftaran '" + userDAO.getNama(userId) + "' ke proyek anda dengan judul '" + getJudulProyek(proyekId) + "'.";
+            String logSql1 = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql1, ownerId, isiNotifikasi1);
+
+            String isiNotifikasi2 = "Pendaftaran anda ke proyek '" + getJudulProyek(proyekId) + "' telah DISETUJUI.";
+            String logSql2 = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(logSql2, userId, isiNotifikasi2);
+
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menerima pengajuan: " + e.getMessage());
@@ -344,6 +383,33 @@ public class ProyekDAO {
 
     public boolean hapusProyek(String proyekId, String userId) {
         try {
+            String judulProyek = getJudulProyek(proyekId);
+            String getAnggotaSql = "SELECT user_id FROM anggota_proyek WHERE proyek_id = ?";
+            String getPengajuanSql = "SELECT user_id FROM pengajuan_proyek WHERE proyek_id = ?";
+
+            
+            var anggotaStmt = con.prepareStatement(getAnggotaSql);
+            anggotaStmt.setString(1, proyekId);
+            var anggotaRs = anggotaStmt.executeQuery();
+            
+            while (anggotaRs.next()) {
+                String anggotaId = anggotaRs.getString("user_id");
+                String isiNotifikasi = "Proyek '" + judulProyek + "' yang anda ikuti telah dihapus oleh pemilik proyek.";
+                String notifikasiSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+                DatabaseConnection.getInstance().execute(notifikasiSql, anggotaId, isiNotifikasi);
+            }
+
+            var pengajuanStmt = con.prepareStatement(getPengajuanSql);
+            pengajuanStmt.setString(1, proyekId);
+            var pengajuanRs = pengajuanStmt.executeQuery();
+            
+            while (pengajuanRs.next()) {
+                String pengajuId = pengajuanRs.getString("user_id");
+                String isiNotifikasi = "Pengajuan anda ke proyek '" + judulProyek + "' dibatalkan karena proyek telah dihapus oleh pemilik.";
+                String notifikasiSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+                DatabaseConnection.getInstance().execute(notifikasiSql, pengajuId, isiNotifikasi);
+            }
+            
             var sql = "DELETE FROM proyek WHERE proyek_id = ? AND user_id = ?";
             var stmt = con.prepareStatement(sql);
             stmt.setString(1, proyekId);
@@ -363,6 +429,20 @@ public class ProyekDAO {
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
             stmt.executeUpdate();
+
+            String judulProyek = getJudulProyek(proyekId);
+
+            String getAnggotaSql = "SELECT user_id FROM anggota_proyek WHERE proyek_id = ?";
+            var anggotaStmt = con.prepareStatement(getAnggotaSql);
+            anggotaStmt.setString(1, proyekId);
+            var anggotaRs = anggotaStmt.executeQuery();
+
+            while (anggotaRs.next()) {
+                String anggotaId = anggotaRs.getString("user_id");
+                String isiNotifikasi = "Proyek '" + judulProyek + "' telah ditandai sebagai SELESAI oleh pemilik proyek.";
+                String notifikasiSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+                DatabaseConnection.getInstance().execute(notifikasiSql, anggotaId, isiNotifikasi);
+            }
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menandai proyek selesai: " + e.getMessage());
@@ -377,13 +457,27 @@ public class ProyekDAO {
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
             stmt.executeUpdate();
+
+            String judulProyek = getJudulProyek(proyekId);
+
+            String getAnggotaSql = "SELECT user_id FROM anggota_proyek WHERE proyek_id = ?";
+            var anggotaStmt = con.prepareStatement(getAnggotaSql);
+            anggotaStmt.setString(1, proyekId);
+            var anggotaRs = anggotaStmt.executeQuery();
+
+            while (anggotaRs.next()) {
+                String anggotaId = anggotaRs.getString("user_id");
+                String isiNotifikasi = "Proyek '" + judulProyek + "' telah DITUTUP oleh pemilik proyek.";
+                String notifikasiSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+                DatabaseConnection.getInstance().execute(notifikasiSql, anggotaId, isiNotifikasi);
+            }
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menandai proyek ditutup: " + e.getMessage());
             return false;
         }
     }
-    
+
     public boolean bukaProyek(String proyekId, String userId) {
         try {
             var sql = "UPDATE proyek SET status = 'aktif' WHERE proyek_id = ? AND user_id = ?";
@@ -391,6 +485,19 @@ public class ProyekDAO {
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
             stmt.executeUpdate();
+            String judulProyek = getJudulProyek(proyekId);
+
+            String getAnggotaSql = "SELECT user_id FROM anggota_proyek WHERE proyek_id = ?";
+            var anggotaStmt = con.prepareStatement(getAnggotaSql);
+            anggotaStmt.setString(1, proyekId);
+            var anggotaRs = anggotaStmt.executeQuery();
+
+            while (anggotaRs.next()) {
+                String anggotaId = anggotaRs.getString("user_id");
+                String isiNotifikasi = "Proyek '" + judulProyek + "' telah DIBUKA kembali oleh pemilik proyek.";
+                String notifikasiSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+                DatabaseConnection.getInstance().execute(notifikasiSql, anggotaId, isiNotifikasi);
+            }
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menandai proyek ditutup: " + e.getMessage());
@@ -407,12 +514,11 @@ public class ProyekDAO {
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 anggota.add(new User(
-                    rs.getInt("user_id"),
-                    rs.getString("nama"),
-                    rs.getString("email"),
-                    null,
-                    null
-                ));
+                        rs.getInt("user_id"),
+                        rs.getString("nama"),
+                        rs.getString("email"),
+                        null,
+                        null));
             }
         } catch (Exception e) {
             System.out.println("Gagal mengambil anggota proyek: " + e.getMessage());
@@ -429,12 +535,11 @@ public class ProyekDAO {
             var rs = stmt.executeQuery();
             while (rs.next()) {
                 pendaftaran.add(new User(
-                    rs.getInt("user_id"),
-                    rs.getString("nama"),
-                    rs.getString("email"),
-                    null,
-                    null
-                ));
+                        rs.getInt("user_id"),
+                        rs.getString("nama"),
+                        rs.getString("email"),
+                        null,
+                        null));
             }
         } catch (Exception e) {
             System.out.println("Gagal mengambil pendaftaran anggota proyek: " + e.getMessage());
@@ -444,11 +549,17 @@ public class ProyekDAO {
 
     public boolean hapusAnggotaProyek(String proyekId, String userId) {
         try {
+            String judulProyek = getJudulProyek(proyekId);
+            
             var sql = "DELETE FROM anggota_proyek WHERE proyek_id = ? AND user_id = ?";
             var stmt = con.prepareStatement(sql);
             stmt.setString(1, proyekId);
             stmt.setString(2, userId);
             stmt.executeUpdate();
+            
+            String isiNotifikasi = "Anda telah dikeluarkan dari proyek '" + judulProyek + "'.";
+            String notifikasiSql = "INSERT INTO notifikasi (user_id, isi) VALUES (?, ?)";
+            DatabaseConnection.getInstance().execute(notifikasiSql, userId, isiNotifikasi);
             return true;
         } catch (Exception e) {
             System.out.println("Gagal menghapus anggota proyek: " + e.getMessage());
@@ -489,7 +600,7 @@ public class ProyekDAO {
         return false;
     }
 
-    public String getOwnerId(String proyekId){
+    public String getOwnerId(String proyekId) {
         try {
             var sql = "SELECT user_id FROM proyek WHERE proyek_id = ?";
             var stmt = con.prepareStatement(sql);
@@ -504,7 +615,7 @@ public class ProyekDAO {
         return null;
     }
 
-    public String getJudulProyek(String proyekId){
+    public String getJudulProyek(String proyekId) {
         try {
             var sql = "SELECT judul FROM proyek WHERE proyek_id = ?";
             var stmt = con.prepareStatement(sql);

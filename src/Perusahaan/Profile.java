@@ -493,9 +493,7 @@ public class Profile extends JFrame {
                 e.printStackTrace();
             }
             
-            // Simulasi login untuk testing
-            SessionManager.getInstance().login(14, "PT Pactindo", "pactindo@pactindo.com", "company");
-            
+           
             new Profile().setVisible(true);
         });
     }

@@ -8,6 +8,8 @@ import Mahasiswa.CariProyek;
 import Mahasiswa.Dashboard;
 import Mahasiswa.Inbox;
 import Mahasiswa.Profile;
+import Mahasiswa.Portofolio;
+
 
 public class MahasiswaNavigation extends JPanel {
     public MahasiswaNavigation(String activeMenu) {
@@ -67,8 +69,8 @@ public class MahasiswaNavigation extends JPanel {
                         new Profile().setVisible(true);
                         SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
                     } else if (item.equals("Portofolio")) {
-                        // Navigate to Portofolio
-                        System.out.println("Navigating to Portofolio");
+                        new Portofolio().setVisible(true);
+                        SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
                     } else if (item.equals("Lowongan")) {
                         // Navigate to Lowongan
                         System.out.println("Navigating to Lowongan");

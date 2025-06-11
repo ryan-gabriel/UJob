@@ -14,13 +14,18 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.plaf.basic.BasicScrollBarUI;
+// --- PERUBAHAN DIMULAI: Menambahkan import untuk PerusahaanNavigation ---
+import Components.PerusahaanNavigation;
+// --- PERUBAHAN SELESAI ---
 /**
  *
  * @author Rian G S
  */
 public class Inbox extends javax.swing.JFrame {
 
-    private static final Color HEADER_BLUE = new Color(52, 82, 139);
+    // --- PERUBAHAN DIMULAI: Menghapus konstanta yang tidak lagi digunakan ---
+    // private static final Color HEADER_BLUE = new Color(52, 82, 139);
+    // --- PERUBAHAN SELESAI ---
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
     private static final Color TEXT_GRAY = new Color(128, 128, 128);
     private static final Color HOVER_COLOR = new Color(240, 240, 240);
@@ -64,7 +69,7 @@ public class Inbox extends javax.swing.JFrame {
         @Override
         protected void configureScrollBarColors() {
             thumbColor = new Color(100, 100, 100, 150);
-            trackColor = new Color(0, 0, 0, 0); // Ini masih bisa tetap meskipun kita gambar manual
+            trackColor = new Color(0, 0, 0, 0);
         }
 
         @Override
@@ -74,16 +79,15 @@ public class Inbox extends javax.swing.JFrame {
                 : new Dimension(0, SCROLL_BAR_WIDTH);
         }
 
-        // ✅ MASUKKAN DI SINI:
         @Override
         protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-            g2.setColor(new Color(200, 200, 200, 60)); // warna track bulat
+            g2.setColor(new Color(200, 200, 200, 60));
 
-            int arc = 8; // tingkat kebulatan
-            int padding = 4; // jarak atas & bawah
+            int arc = 8;
+            int padding = 4;
 
             if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
                 int x = trackBounds.x;
@@ -135,29 +139,6 @@ public class Inbox extends javax.swing.JFrame {
             return button;
         }
     }
-
-    
-    public class MaterialScrollBarUI extends BasicScrollBarUI {
-        private final Color THUMB_COLOR = new Color(158, 158, 158);
-
-        @Override
-        protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
-            // Material Design elevation shadow effect
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            // Shadow
-            g2.setColor(new Color(0, 0, 0, 20));
-            g2.fillRoundRect(thumbBounds.x + 1, thumbBounds.y + 1, 
-                            thumbBounds.width, thumbBounds.height, 4, 4);
-
-            // Thumb
-            g2.setColor(THUMB_COLOR);
-            g2.fillRoundRect(thumbBounds.x, thumbBounds.y, 
-                            thumbBounds.width, thumbBounds.height, 4, 4);
-            g2.dispose();
-        }
-    }
     
     private void initializeUI() {
         setTitle("UPI Job - Inbox System");
@@ -165,103 +146,46 @@ public class Inbox extends javax.swing.JFrame {
         setSize(1200, 700);
         setLocationRelativeTo(null);
         
-        // Main container - equivalent to CSS body
         setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
         
-        // Create header
-        createHeader();
+        // --- PERUBAHAN DIMULAI: Menggunakan PerusahaanNavigation ---
+        // Header lama dihapus dan diganti dengan komponen navigasi terpusat
+        PerusahaanNavigation navigationPanel = new PerusahaanNavigation("Inbox");
+        add(navigationPanel, BorderLayout.NORTH);
+        // --- PERUBAHAN SELESAI ---
         
         // Create main content area
         createMainContent();
     }
     
-    private void createHeader() {
-        // Header panel - like CSS header with background-color and padding
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(HEADER_BLUE);
-        headerPanel.setBorder(new EmptyBorder(15, 20, 15, 20)); // CSS: padding: 15px 20px
-        
-        // Left side - Logo and title
-        JPanel leftHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
-        leftHeader.setBackground(HEADER_BLUE);
-        leftHeader.setOpaque(false);
-        
-        // Logo circle - CSS: border-radius: 50%; background: white
-        JLabel logoLabel = new JLabel("UJOB");
-        logoLabel.setForeground(HEADER_BLUE);
-        logoLabel.setFont(new Font("Arial", Font.BOLD, 12));
-        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        logoLabel.setPreferredSize(new Dimension(40, 40));
-        logoLabel.setBackground(Color.WHITE);
-        logoLabel.setOpaque(true);
-        logoLabel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
-        
-        JLabel titleLabel = new JLabel("UPI Job");
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        
-        leftHeader.add(logoLabel);
-        leftHeader.add(titleLabel);
-        
-        // Right side navigation - CSS: display: flex; gap: 30px
-        JPanel rightHeader = new JPanel(new FlowLayout(FlowLayout.RIGHT, 30, 0));
-        rightHeader.setBackground(HEADER_BLUE);
-        rightHeader.setOpaque(false);
-        
-        String[] navItems = {"Dashboard", "Kelola Lowongan", "Lamaran Masuk", "Profil", "Inbox"};
-        for (String item : navItems) {
-            JLabel navLabel = createNavLabel(item, item.equals("Inbox"));
-            rightHeader.add(navLabel);
-        }
-        
-        headerPanel.add(leftHeader, BorderLayout.WEST);
-        headerPanel.add(rightHeader, BorderLayout.EAST);
-        
-        add(headerPanel, BorderLayout.NORTH);
-    }
-    
-    private JLabel createNavLabel(String text, boolean isActive) {
-        JLabel label = new JLabel(text);
-        label.setForeground(isActive ? Color.YELLOW : Color.WHITE); // Active state like CSS :active
-        label.setFont(new Font("Arial", isActive ? Font.BOLD : Font.PLAIN, 14));
-        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // CSS: cursor: pointer
-        
-        // Hover effect - similar to CSS :hover
-        label.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                if (!isActive) label.setForeground(new Color(200, 200, 200));
-            }
-            
-            @Override
-            public void mouseExited(MouseEvent e) {
-                if (!isActive) label.setForeground(Color.WHITE);
-            }
-        });
-        
-        return label;
-    }
+    // --- PERUBAHAN DIMULAI: Menghapus metode createHeader() dan createNavLabel() ---
+    /*
+    private void createHeader() { ... }
+    private JLabel createNavLabel(String text, boolean isActive) { ... }
+    */
+    // --- PERUBAHAN SELESAI ---
     
     private void createMainContent() {
-        // Main content container - CSS: max-width: 1200px; margin: 0 auto; padding: 40px 20px
+        // Main content container
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         mainPanel.setBackground(Color.WHITE);
         
-        // Page title - CSS: font-size: 24px; font-weight: bold; margin-bottom: 30px
+        // Page title
         JLabel pageTitle = new JLabel("PT Pactindo's Inbox");
         pageTitle.setFont(new Font("Arial", Font.BOLD, 24));
         pageTitle.setForeground(Color.BLACK);
         pageTitle.setBorder(new EmptyBorder(0, 0, 30, 0));
         
-        // Inbox header with filter - CSS: display: flex; align-items: center; margin-bottom: 20px
+        // Inbox header with filter
         JPanel inboxHeader = createInboxHeader();
         
-        // Scrollable inbox container - CSS: overflow-y: auto; max-height: 600px
+        // Scrollable inbox container
         JScrollPane inboxScrollPane = createInboxScrollPane();
         inboxScrollPane.getVerticalScrollBar().setUI(new ThinScrollBarUI());
         inboxScrollPane.getVerticalScrollBar().setBorder(null);
+
         // Assemble main content
         JPanel contentWrapper = new JPanel(new BorderLayout());
         contentWrapper.add(pageTitle, BorderLayout.NORTH);
@@ -279,12 +203,10 @@ public class Inbox extends javax.swing.JFrame {
         header.setBackground(Color.WHITE);
         header.setBorder(new EmptyBorder(0, 0, 20, 0));
         
-        // "Inbox Terbaru" with info icon - CSS: display: inline-flex; align-items: center
         JLabel inboxLabel = new JLabel("Inbox Terbaru");
         inboxLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         inboxLabel.setForeground(Color.BLACK);
         
-        // Info icon - CSS: margin-left: 8px; color: #888
         JLabel infoIcon = new JLabel("ⓘ");
         infoIcon.setFont(new Font("Arial", Font.PLAIN, 14));
         infoIcon.setForeground(TEXT_GRAY);
@@ -297,28 +219,24 @@ public class Inbox extends javax.swing.JFrame {
     }
     
     private JScrollPane createInboxScrollPane() {
-        // Container for inbox items - like CSS flexbox container
         JPanel inboxContainer = new JPanel();
         inboxContainer.setLayout(new BoxLayout(inboxContainer, BoxLayout.Y_AXIS));
         inboxContainer.setBackground(Color.WHITE);
         
-        // This will be populated with inbox items
         this.inboxContainer = inboxContainer;
         
-        // Scroll pane - CSS: overflow-y: auto
         JScrollPane scrollPane = new JScrollPane(inboxContainer);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(Color.WHITE);
         
-        // Custom scrollbar styling (limited in Swing compared to CSS)
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         
         return scrollPane;
     }
     
-    private JPanel inboxContainer; // Reference for adding items
+    private JPanel inboxContainer;
     
     private void populateInboxData() {
         // Sample data - in real app, this would come from database
@@ -344,64 +262,55 @@ public class Inbox extends javax.swing.JFrame {
     }
     
     private void addInboxItem(String type, String title, String description, String date) {
-    // Individual inbox item - CSS: border-bottom: 1px solid #ddd; padding: 20px 0
-    JPanel itemPanel = new JPanel(new BorderLayout());
+        // ... (kode untuk addInboxItem tetap sama)
+        JPanel itemPanel = new JPanel(new BorderLayout());
     itemPanel.setBackground(Color.WHITE);
     itemPanel.setBorder(BorderFactory.createCompoundBorder(
-        new MatteBorder(0, 0, 1, 0, BORDER_COLOR), // Bottom border
-        new EmptyBorder(20, 5, 20, 5) // Padding
+        new MatteBorder(0, 0, 1, 0, BORDER_COLOR),
+        new EmptyBorder(20, 5, 20, 5)
     ));
     
-    // Header panel (top) - contains left and right content
     JPanel headerPanel = new JPanel(new BorderLayout());
     headerPanel.setBackground(Color.WHITE);
     headerPanel.setOpaque(false);
     
-    // Left header content (type and title)
     JPanel leftHeaderContent = new JPanel();
     leftHeaderContent.setLayout(new BoxLayout(leftHeaderContent, BoxLayout.Y_AXIS));
     leftHeaderContent.setBackground(Color.WHITE);
     leftHeaderContent.setOpaque(false);
     
-    // Type label - CSS: font-weight: bold; font-size: 16px; margin-bottom: 5px
     JLabel typeLabel = new JLabel(type);
     typeLabel.setFont(new Font("Arial", Font.BOLD, 16));
     typeLabel.setForeground(Color.BLACK);
     typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
-    // Title label - CSS: color: #666; font-size: 14px; margin-bottom: 8px
     JLabel titleLabel = new JLabel(title);
     titleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
     titleLabel.setForeground(TEXT_GRAY);
     titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
-    // Add type and title to left header
     leftHeaderContent.add(typeLabel);
     leftHeaderContent.add(Box.createVerticalStrut(5));
     leftHeaderContent.add(titleLabel);
     
-    // Date label (right header)
     JLabel dateLabel = new JLabel(date);
     dateLabel.setFont(new Font("Arial", Font.PLAIN, 14));
     dateLabel.setForeground(TEXT_GRAY);
     dateLabel.setVerticalAlignment(SwingConstants.TOP);
     
-    // Create wrapper for date to control its width
     JPanel datePanel = new JPanel(new BorderLayout());
     datePanel.setBackground(Color.WHITE);
     datePanel.setOpaque(false);
-    datePanel.setPreferredSize(new Dimension(120, 0)); // Increased width for full date
+    datePanel.setPreferredSize(new Dimension(120, 0));
     datePanel.add(dateLabel, BorderLayout.CENTER);
     
-    // Add left and right content to header
     headerPanel.add(leftHeaderContent, BorderLayout.CENTER);
     headerPanel.add(datePanel, BorderLayout.EAST);
     
-    // Description area (separate from header)
     JPanel descriptionPanel = new JPanel(new BorderLayout());
     descriptionPanel.setBackground(Color.WHITE);
     descriptionPanel.setOpaque(false);
-    descriptionPanel.setBorder(new EmptyBorder(8, 0, 0, 0)); // Top margin
+    descriptionPanel.setBorder(new EmptyBorder(8, 0, 0, 0));
     
     JTextArea descArea = new JTextArea(description);
     descArea.setFont(new Font("Arial", Font.PLAIN, 13));
@@ -413,24 +322,20 @@ public class Inbox extends javax.swing.JFrame {
     descArea.setWrapStyleWord(true);
     descArea.setBorder(null);
     
-    // Don't set fixed preferred size initially
     descArea.setColumns(0);
     descArea.setRows(0);
     
     descriptionPanel.add(descArea, BorderLayout.CENTER);
     
-    // Add header and description to main item panel
     itemPanel.add(headerPanel, BorderLayout.NORTH);
     itemPanel.add(descriptionPanel, BorderLayout.CENTER);
     
-    // Method to update description width
     Runnable updateDescWidth = () -> {
         SwingUtilities.invokeLater(() -> {
             int containerWidth = itemPanel.getWidth();
             if (containerWidth > 0) {
-                // Calculate available width: container width - padding - date panel width
-                int availableWidth = containerWidth - 50 - 120; // 50 for padding, 120 for date panel
-                int maxDescWidth = Math.max(200, (int)(availableWidth * 0.9)); // Minimum 200px
+                int availableWidth = containerWidth - 50 - 120;
+                int maxDescWidth = Math.max(200, (int)(availableWidth * 0.9));
                 
                 descArea.setPreferredSize(new Dimension(maxDescWidth, descArea.getPreferredSize().height));
                 descArea.setSize(maxDescWidth, descArea.getHeight());
@@ -440,9 +345,6 @@ public class Inbox extends javax.swing.JFrame {
         });
     };
     
-    
-    
-    // Add multiple listeners to catch all resize events
     itemPanel.addComponentListener(new ComponentAdapter() {
         @Override
         public void componentResized(ComponentEvent e) {
@@ -450,7 +352,6 @@ public class Inbox extends javax.swing.JFrame {
         }
     });
     
-    // Also add listener to the parent container to catch window resizing
     itemPanel.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
         @Override
         public void ancestorResized(HierarchyEvent e) {
@@ -458,10 +359,8 @@ public class Inbox extends javax.swing.JFrame {
         }
     });
     
-    // Initial width calculation after component is added
     SwingUtilities.invokeLater(updateDescWidth);
     
-    // Hover effect - CSS: :hover { background-color: #f8f8f8; }
     itemPanel.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseEntered(MouseEvent e) {
@@ -491,7 +390,7 @@ public class Inbox extends javax.swing.JFrame {
     });
     
     inboxContainer.add(itemPanel);
-}
+    }
     
     /**
      * @param args the command line arguments

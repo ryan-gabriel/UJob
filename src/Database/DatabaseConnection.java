@@ -42,20 +42,6 @@ public class DatabaseConnection {
         return getInstance().connection;
     }
 
-    // Metode untuk mendapatkan koneksi
-
-    // Metode untuk menutup koneksi
-    public void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                LOGGER.info("Koneksi database ditutup");
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Gagal menutup koneksi database", e);
-        }
-    }
-
     public void execute(String sql, String... params) {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) {

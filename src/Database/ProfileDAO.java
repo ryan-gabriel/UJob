@@ -1,148 +1,143 @@
 package Database;
 
 import Models.ProfilMahasiswa;
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 public class ProfileDAO {
-    private Connection connection;
+
+    private final Connection connection;
 
     public ProfileDAO() {
-           try {
-            // Gunakan getInstance() untuk mendapatkan koneksi
-            this.connection = DatabaseConnection.getConnection();
-            
-            if (this.connection == null) {
-                throw new SQLException("Koneksi database gagal dibuat");
-            }
-        } catch (SQLException e) {
-            System.err.println("Kesalahan saat membuat koneksi: " + e.getMessage());
-            throw new RuntimeException("Tidak dapat membuat koneksi database", e);
-        }
+        connection = DatabaseConnection.getConnection();
     }
 
-    // Mendapatkan semua profil
-    public List<ProfilMahasiswa> getAllProfiles() {
-    List<ProfilMahasiswa> profiles = new ArrayList<>();
-    String query = "SELECT pm.*, u.nama " +
-                   "FROM profil_mahasiswa pm " +
-                   "JOIN user u ON pm.user_id = u.user_id";
-    
-    try (PreparedStatement stmt = connection.prepareStatement(query);
-         ResultSet rs = stmt.executeQuery()) {
-        
-        while (rs.next()) {
-            ProfilMahasiswa profile = new ProfilMahasiswa(
-                rs.getInt("user_id"),
-                rs.getString("nama"), // Tambahkan nama dari tabel users
-                rs.getString("pendidikan"),
-                rs.getString("ringkasan"),
-                rs.getString("pengalaman"),
-                rs.getString("skill")
-            );
-            profiles.add(profile);
-        }
-    } catch (SQLException e) {
-        System.err.println("Kesalahan saat mengambil semua profil: " + e.getMessage());
-        e.printStackTrace();
-    }
-    return profiles;
-}
-
-public List<ProfilMahasiswa> searchProfiles(String query) {
-    List<ProfilMahasiswa> filteredProfiles = new ArrayList<>();
-    String searchQuery = "SELECT pm.*, u.nama " +
-                         "FROM profil_mahasiswa pm " +
-                         "JOIN user u ON pm.user_id = u.user_id " +
-                         "WHERE pendidikan LIKE ? OR ringkasan LIKE ? " +
-                         "OR pengalaman LIKE ? OR skill LIKE ? OR u.nama LIKE ?";
-    
-    try (PreparedStatement stmt = connection.prepareStatement(searchQuery)) {
-        String searchParam = "%" + query + "%";
-        stmt.setString(1, searchParam);
-        stmt.setString(2, searchParam);
-        stmt.setString(3, searchParam);
-        stmt.setString(4, searchParam);
-        stmt.setString(5, searchParam);
-
-        try (ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                ProfilMahasiswa profile = new ProfilMahasiswa(
-                    rs.getInt("user_id"),
-                    rs.getString("nama"), // Tambahkan nama dari tabel users
-                    rs.getString("pendidikan"),
-                    rs.getString("ringkasan"),
-                    rs.getString("pengalaman"),
-                    rs.getString("skill")
-                );
-                filteredProfiles.add(profile);
-            }
-        }
-    } catch (SQLException e) {
-        System.err.println("Kesalahan saat mencari profil: " + e.getMessage());
-        e.printStackTrace();
-    }
-    return filteredProfiles;
-}
-
-// Juga update metode getProfileById
-public ProfilMahasiswa getProfileById(int userId) {
-    ProfilMahasiswa profile = null;
-    String query = "SELECT pm.*, u.nama " +
-                   "FROM profil_mahasiswa pm " +
-                   "JOIN user u ON pm.user_id = u.user_id " +
-                   "WHERE pm.user_id = ?";
-    
-    try (PreparedStatement stmt = connection.prepareStatement(query)) {
-        stmt.setInt(1, userId);
-        
-        try (ResultSet rs = stmt.executeQuery()) {
-            if (rs.next()) {
-                profile = new ProfilMahasiswa(
-                    rs.getInt("user_id"),
-                    rs.getString("nama"), // Tambahkan nama dari tabel users
-                    rs.getString("pendidikan"),
-                    rs.getString("ringkasan"),
-                    rs.getString("pengalaman"),
-                    rs.getString("skill")
-                );
-            }
-        }
-    } catch (SQLException e) {
-        System.err.println("Kesalahan saat mengambil profil berdasarkan ID: " + e.getMessage());
-        e.printStackTrace();
-    }
-    return profile;
-}
-
-
-    // Mengirim permintaan koneksi
-    public boolean sendConnectionRequest(int senderId, int receiverId) {
-        String query = "INSERT INTO permintaan_koneksi (pengirim_id, penerima_id, status) VALUES (?, ?, 'menunggu')";
+    public ProfilMahasiswa getProfileById(int userId) {
+        String query = "SELECT pm.*, u.nama " +
+                       "FROM profil_mahasiswa pm " +
+                       "JOIN user u ON pm.user_id = u.user_id " +
+                       "WHERE pm.user_id = ?";
         
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
-            stmt.setInt(1, senderId);
-            stmt.setInt(2, receiverId);
+            stmt.setInt(1, userId);
             
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new ProfilMahasiswa(
+                        rs.getInt("user_id"),
+                        rs.getString("nama"),
+                        rs.getString("ringkasan"),
+                        rs.getString("pendidikan"),
+                        rs.getString("pengalaman"),
+                        rs.getString("skill")
+                    );
+                } else {
+                    String userQuery = "SELECT nama FROM user WHERE user_id = ?";
+                    try (PreparedStatement userStmt = connection.prepareStatement(userQuery)) {
+                        userStmt.setInt(1, userId);
+                        try (ResultSet userRs = userStmt.executeQuery()) {
+                            if (userRs.next()) {
+                                String nama = userRs.getString("nama");
+                                return new ProfilMahasiswa(userId, nama, "", "", "", "");
+                            }
+                        }
+                    }
+                }
+            }
         } catch (SQLException e) {
-            System.err.println("Kesalahan saat mengirim permintaan koneksi: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null; 
+    }
+
+    public boolean updateOrInsertProfile(ProfilMahasiswa profile) {
+        String query = "INSERT INTO profil_mahasiswa (user_id, ringkasan, pendidikan, pengalaman, skill) " +
+                       "VALUES (?, ?, ?, ?, ?) " +
+                       "ON DUPLICATE KEY UPDATE " +
+                       "ringkasan = VALUES(ringkasan), " +
+                       "pendidikan = VALUES(pendidikan), " +
+                       "pengalaman = VALUES(pengalaman), " +
+                       "skill = VALUES(skill)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, profile.getUserId());
+            stmt.setString(2, profile.getRingkasan());
+            stmt.setString(3, profile.getPendidikan());
+            stmt.setString(4, profile.getPengalaman());
+            stmt.setString(5, profile.getSkill());
+            
+            int affectedRows = stmt.executeUpdate();
+            return affectedRows > 0;
+        } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    // Metode untuk menutup koneksi database
-    public void closeConnection() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-            }
+    // =====================================================================
+    // METODE-METODE BARU UNTUK UPDATE SPESIFIK (DITAMBAHKAN DI SINI)
+    // =====================================================================
+
+    public boolean updateRingkasan(int userId, String ringkasan) {
+        String query = "UPDATE profil_mahasiswa SET ringkasan = ? WHERE user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, ringkasan);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Kesalahan saat menutup koneksi: " + e.getMessage());
             e.printStackTrace();
+            return false;
         }
+    }
+
+    public boolean updatePendidikan(int userId, String pendidikan) {
+        String query = "UPDATE profil_mahasiswa SET pendidikan = ? WHERE user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, pendidikan);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateSkill(int userId, String skill) {
+        String query = "UPDATE profil_mahasiswa SET skill = ? WHERE user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, skill);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updatePengalaman(int userId, String pengalaman) {
+        String query = "UPDATE profil_mahasiswa SET pengalaman = ? WHERE user_id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setString(1, pengalaman);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<ProfilMahasiswa> getAllProfiles() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public List<ProfilMahasiswa> searchProfiles(String query) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    public boolean sendConnectionRequest(int currentUserId, int targetUserId) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

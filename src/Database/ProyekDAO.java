@@ -629,4 +629,8 @@ public class ProyekDAO {
         }
         return null;
     }
+
+    public boolean tambahProyek(int userId, String judul, String deskripsi, String bidang) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }

@@ -133,12 +133,7 @@ public class Dashboard extends javax.swing.JFrame {
         title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setForeground(Color.decode("#333333"));
         
-        JLabel infoIcon =  new JLabel(new ImageIcon(getClass().getResource("/images/info.png")));
-        infoIcon.setFont(new Font("Arial", Font.PLAIN, 16));
-        infoIcon.setForeground(Color.decode("#999999"));
-        
         headerPanel.add(title, BorderLayout.WEST);
-        headerPanel.add(infoIcon, BorderLayout.EAST);
         
         latestInboxContainer.add(headerPanel, BorderLayout.NORTH);
 
@@ -270,118 +265,113 @@ public class Dashboard extends javax.swing.JFrame {
         return Color.decode("#E5E5E5"); // Default
     }
     
-    public JPanel profileStatus(){
-        JPanel profileStatusContainer = new JPanel(new BorderLayout());
-        profileStatusContainer.setOpaque(false);
-        profileStatusContainer.setPreferredSize(new Dimension(400, 200));
-        
-        // Header with title and info icon
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setOpaque(false);
-        
-        JLabel title = new JLabel("Status Profile");
-        title.setFont(new Font("Arial", Font.BOLD, 18));
-        title.setForeground(Color.decode("#333333"));
-        
-        JLabel infoIcon =  new JLabel(new ImageIcon(getClass().getResource("/images/info.png")));
-        infoIcon.setFont(new Font("Arial", Font.PLAIN, 16));
-        infoIcon.setForeground(Color.decode("#999999"));
-        
-        headerPanel.add(title, BorderLayout.WEST);
-        headerPanel.add(infoIcon, BorderLayout.EAST);
-        
-        profileStatusContainer.add(headerPanel, BorderLayout.NORTH);
-        
-        // Content area
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setOpaque(false);
-        contentPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
-        
-        // Calculate current progress
-        final int progressPercentage = calculateCompletionPercentage();
-        final Color progressColor = getProgressColor(progressPercentage);
-        
-        // Left side - Progress circle
-        JPanel progressPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                int centerX = getWidth() / 2;
-                int centerY = getHeight() / 2;
-                int radius = 40;
-                
-                // Background circle
-                g2.setColor(Color.decode("#E5E5E5"));
-                g2.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
-                
-                // Progress arc berdasarkan persentase
-                if (progressPercentage > 0) {
-                    g2.setColor(progressColor);
-                    int arcAngle = (int) (360 * (progressPercentage / 100.0));
-                    g2.fillArc(centerX - radius, centerY - radius, radius * 2, radius * 2, 90, arcAngle);
-                }
-                
-                // Inner white circle
-                g2.setColor(Color.WHITE);
-                g2.fillOval(centerX - 30, centerY - 30, 60, 60);
-                
-                // Text dengan warna yang sesuai
-                g2.setColor(progressPercentage == 0 ? Color.decode("#999999") : progressColor);
-                g2.setFont(new Font("Arial", Font.BOLD, 16));
-                String text = progressPercentage + "%";
-                int textWidth = g2.getFontMetrics().stringWidth(text);
-                g2.drawString(text, centerX - textWidth/2, centerY + 5);
-                
-                g2.dispose();
+public JPanel profileStatus(){
+    JPanel profileStatusContainer = new JPanel(new BorderLayout());
+    profileStatusContainer.setOpaque(false);
+    profileStatusContainer.setPreferredSize(new Dimension(400, 200));
+    
+    // Header with title only (removed info icon)
+    JPanel headerPanel = new JPanel(new BorderLayout());
+    headerPanel.setOpaque(false);
+    
+    JLabel title = new JLabel("Status Profile");
+    title.setFont(new Font("Arial", Font.BOLD, 18));
+    title.setForeground(Color.decode("#333333"));
+    
+    headerPanel.add(title, BorderLayout.WEST);
+    // Removed the info icon line
+    
+    profileStatusContainer.add(headerPanel, BorderLayout.NORTH);
+    
+    // Content area
+    JPanel contentPanel = new JPanel(new BorderLayout());
+    contentPanel.setOpaque(false);
+    contentPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
+    
+    // Calculate current progress
+    final int progressPercentage = calculateCompletionPercentage();
+    final Color progressColor = getProgressColor(progressPercentage);
+    
+    // Left side - Progress circle
+    JPanel progressPanel = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            int centerX = getWidth() / 2;
+            int centerY = getHeight() / 2;
+            int radius = 40;
+            
+            // Background circle
+            g2.setColor(Color.decode("#E5E5E5"));
+            g2.fillOval(centerX - radius, centerY - radius, radius * 2, radius * 2);
+            
+            // Progress arc berdasarkan persentase
+            if (progressPercentage > 0) {
+                g2.setColor(progressColor);
+                int arcAngle = (int) (360 * (progressPercentage / 100.0));
+                g2.fillArc(centerX - radius, centerY - radius, radius * 2, radius * 2, 90, arcAngle);
             }
-        };
-        progressPanel.setOpaque(false);
-        progressPanel.setPreferredSize(new Dimension(120, 120));
-        
-        // Right side - Status items
-        JPanel statusItemsPanel = new JPanel();
-        statusItemsPanel.setLayout(new BoxLayout(statusItemsPanel, BoxLayout.Y_AXIS));
-        statusItemsPanel.setOpaque(false);
-        statusItemsPanel.setBorder(new EmptyBorder(10, 20, 0, 0));
-        
-        // Status items berdasarkan variabel boolean
-        String[][] statusItems = {
-            {isDataDiriComplete ? "check" : "cross", "Data Diri", isDataDiriComplete ? "#28A745" : "#DC3545"},
-            {isPendidikanComplete ? "check" : "cross", "Pendidikan", isPendidikanComplete ? "#28A745" : "#DC3545"},
-            {isPortofolioComplete ? "check" : "cross", "Portofolio", isPortofolioComplete ? "#28A745" : "#DC3545"},
-            {isPengalamanComplete ? "check" : "cross", "Pengalaman", isPengalamanComplete ? "#28A745" : "#DC3545"}
-        };
-        
-        for (String[] item : statusItems) {
-            JPanel itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
-            itemPanel.setOpaque(false);
             
-            JLabel iconLabel = item[0].equals("check") ?  new JLabel(new ImageIcon(getClass().getResource("/images/check.png"))) :  new JLabel(new ImageIcon(getClass().getResource("/images/cross.png")));
-            iconLabel.setFont(new Font("Arial", Font.BOLD, 14));
-            iconLabel.setForeground(Color.decode(item[2]));
-            iconLabel.setBorder(new EmptyBorder(0, 0, 0, 10));
+            // Inner white circle
+            g2.setColor(Color.WHITE);
+            g2.fillOval(centerX - 30, centerY - 30, 60, 60);
             
-            String prefix = item[0].equals("check") ? "Sudah Mengisi " : "Belum Mengisi ";
-            JLabel textLabel = new JLabel(prefix + item[1]);
-            textLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            textLabel.setForeground(Color.decode(item[2]));
+            // Text dengan warna yang sesuai
+            g2.setColor(progressPercentage == 0 ? Color.decode("#999999") : progressColor);
+            g2.setFont(new Font("Arial", Font.BOLD, 16));
+            String text = progressPercentage + "%";
+            int textWidth = g2.getFontMetrics().stringWidth(text);
+            g2.drawString(text, centerX - textWidth/2, centerY + 5);
             
-            itemPanel.add(iconLabel);
-            itemPanel.add(textLabel);
-            statusItemsPanel.add(itemPanel);
+            g2.dispose();
         }
+    };
+    progressPanel.setOpaque(false);
+    progressPanel.setPreferredSize(new Dimension(120, 120));
+    
+    // Right side - Status items
+    JPanel statusItemsPanel = new JPanel();
+    statusItemsPanel.setLayout(new BoxLayout(statusItemsPanel, BoxLayout.Y_AXIS));
+    statusItemsPanel.setOpaque(false);
+    statusItemsPanel.setBorder(new EmptyBorder(10, 20, 0, 0));
+    
+    // Status items berdasarkan variabel boolean
+    String[][] statusItems = {
+        {isDataDiriComplete ? "check" : "cross", "Data Diri", isDataDiriComplete ? "#28A745" : "#DC3545"},
+        {isPendidikanComplete ? "check" : "cross", "Pendidikan", isPendidikanComplete ? "#28A745" : "#DC3545"},
+        {isPortofolioComplete ? "check" : "cross", "Portofolio", isPortofolioComplete ? "#28A745" : "#DC3545"},
+        {isPengalamanComplete ? "check" : "cross", "Pengalaman", isPengalamanComplete ? "#28A745" : "#DC3545"}
+    };
+    
+    for (String[] item : statusItems) {
+        JPanel itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
+        itemPanel.setOpaque(false);
         
-        contentPanel.add(progressPanel, BorderLayout.WEST);
-        contentPanel.add(statusItemsPanel, BorderLayout.CENTER);
+        JLabel iconLabel = item[0].equals("check") ?  new JLabel(new ImageIcon(getClass().getResource("/images/check.png"))) :  new JLabel(new ImageIcon(getClass().getResource("/images/cross.png")));
+        iconLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        iconLabel.setForeground(Color.decode(item[2]));
+        iconLabel.setBorder(new EmptyBorder(0, 0, 0, 10));
         
-        profileStatusContainer.add(contentPanel, BorderLayout.CENTER);
+        String prefix = item[0].equals("check") ? "Sudah Mengisi " : "Belum Mengisi ";
+        JLabel textLabel = new JLabel(prefix + item[1]);
+        textLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        textLabel.setForeground(Color.decode(item[2]));
         
-        return profileStatusContainer;
+        itemPanel.add(iconLabel);
+        itemPanel.add(textLabel);
+        statusItemsPanel.add(itemPanel);
     }
     
+    contentPanel.add(progressPanel, BorderLayout.WEST);
+    contentPanel.add(statusItemsPanel, BorderLayout.CENTER);
+    
+    profileStatusContainer.add(contentPanel, BorderLayout.CENTER);
+    
+    return profileStatusContainer;
+}    
     // Method untuk mengupdate status completion (bisa dipanggil dari luar)
     public void updateProfileStatus(boolean dataDiri, boolean pendidikan, boolean portofolio, boolean pengalaman) {
         this.isDataDiriComplete = dataDiri;
@@ -425,16 +415,8 @@ public class Dashboard extends javax.swing.JFrame {
         statusLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
         statusLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
 
-        // University
-        JLabel universityLabel = new JLabel(pendidikan);
-        universityLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        universityLabel.setForeground(Color.decode("#666666"));
-        universityLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-        universityLabel.setBorder(new EmptyBorder(2, 0, 0, 0));
-
         contentPanel.add(nameLabel);
         contentPanel.add(statusLabel);
-        contentPanel.add(universityLabel);
         contentPanel.add(Box.createVerticalStrut(15));
 
         // See Profile button
@@ -448,7 +430,7 @@ public class Dashboard extends javax.swing.JFrame {
         seeProfileBtn.setAlignmentX(JButton.CENTER_ALIGNMENT);
 
         seeProfileBtn.addActionListener(_ -> {
-            new Profile().setVisible(true);
+            new Profile(SessionManager.getInstance().getId()).setVisible(true);
             this.dispose();
         });
 

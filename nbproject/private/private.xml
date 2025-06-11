@@ -3,10 +3,22 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Database/DatabaseConnection.java</file>
-            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Database/ProfileDAO.java</file>
             <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Mahasiswa/EditProyekForm.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Perusahaan/LamaranMasuk.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Perusahaan/KelolaLowongan.java</file>
             <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Mahasiswa/ProyekCariTeman.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Database/PortofoliooDAO.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Database/ProfileDAO.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Mahasiswa/FormProyek.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Database/ProfilePerusahaanDAO.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Database/DatabaseConnection.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Components/MahasiswaNavigation.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Mahasiswa/Profile.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Perusahaan/Profile.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Components/PerusahaanNavigation.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Mahasiswa/Portofolio.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Login.java</file>
+            <file>file:/C:/Users/dinda/OneDrive/Dokumen/NetBeansProjects/UJob/src/Models/ProfilPerusahaan.java</file>
         </group>
     </open-files>
 </project-private>

@@ -4,10 +4,14 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+// Import yang diperlukan untuk navigasi
+import Auth.SessionManager; 
 import Mahasiswa.CariProyek;
 import Mahasiswa.Dashboard;
 import Mahasiswa.Inbox;
+import Mahasiswa.Lowongan;
 import Mahasiswa.Profile;
+
 import Mahasiswa.Portofolio;
 
 
@@ -21,7 +25,7 @@ public class MahasiswaNavigation extends JPanel {
         navPanel.setBackground(new Color(37, 64, 143));
         navPanel.setBorder(new EmptyBorder(15, 40, 15, 40));
 
-        // Logo and brand
+        // Logo dan Nama Aplikasi
         JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         logoPanel.setOpaque(false);
 
@@ -43,7 +47,7 @@ public class MahasiswaNavigation extends JPanel {
         logoPanel.add(logoCircle);
         logoPanel.add(brandLabel);
 
-        // Navigation menu
+        // Menu Navigasi
         String[] menuItems = {"Dashboard", "Profile", "Portofolio", "Lowongan", "Proyek", "Inbox"};
         JPanel menuPanel = new JPanel();
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.X_AXIS));
@@ -65,15 +69,26 @@ public class MahasiswaNavigation extends JPanel {
                     if (item.equals("Dashboard")) {
                         new Dashboard().setVisible(true);
                         SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
+                    
+                    // === PERUBAHAN UTAMA ADA DI BLOK INI ===
                     } else if (item.equals("Profile")) {
-                        new Profile().setVisible(true);
+                        // 1. Ambil ID pengguna yang sedang login dari SessionManager
+                        int currentUserId = SessionManager.getInstance().getId();
+                        
+                        // 2. Panggil constructor Profile dengan menyertakan ID pengguna
+                        new Profile(currentUserId).setVisible(true);
+                        
+                        // 3. Tutup jendela saat ini
                         SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
+                    // =======================================
+
                     } else if (item.equals("Portofolio")) {
+
                         new Portofolio().setVisible(true);
                         SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
                     } else if (item.equals("Lowongan")) {
-                        // Navigate to Lowongan
-                        System.out.println("Navigating to Lowongan");
+                        new Lowongan().setVisible(true);
+                        SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
                     } else if (item.equals("Proyek")) {
                         new CariProyek().setVisible(true);
                         SwingUtilities.getWindowAncestor(MahasiswaNavigation.this).dispose();
@@ -90,7 +105,6 @@ public class MahasiswaNavigation extends JPanel {
         }
 
         menuPanel.add(Box.createHorizontalGlue());
-
 
         navPanel.add(logoPanel, BorderLayout.WEST);
         navPanel.add(menuPanel, BorderLayout.EAST);

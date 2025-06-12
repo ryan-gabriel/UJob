@@ -12,11 +12,8 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +41,9 @@ public class Portofolio extends JFrame {
   private JPanel portofolioPanel;
   private JPanel contentMainPanel;
   
+  // ID Pengguna
+  private int userId; 
+
   // Database access
   private PortofoliooDAO portofolioDAO;
   private List<Portofolioo> portofolioList;
@@ -61,22 +61,33 @@ public class Portofolio extends JFrame {
   
   // Warna untuk setiap jenis
   private final Map<String, Color> jenisColors;
-
-  public Portofolio() {
+  
+  // Constructor yang menerima userId (digunakan oleh MahasiswaNavigation)
+  public Portofolio(int currentUserId) {
+      this.userId = currentUserId; // Simpan ID pengguna
+      
       jenisColors = new HashMap<>();
       initializeJenisColors();
-  try {
-      // Initialize DAO and data
-      portofolioDAO = new PortofoliooDAO();
-      portofolioList = new ArrayList<>();
       
-      initializeUI();
-      loadPortofolioData();
-  } catch (Exception e) {
-      e.printStackTrace();
-      JOptionPane.showMessageDialog(null, "Error initializing Portofolio: " + e.getMessage());
+      try {
+          // Initialize DAO and data
+          portofolioDAO = new PortofoliooDAO();
+          portofolioList = new ArrayList<>();
+          
+          initializeUI();
+          loadPortofolioData(); // Muat data untuk pengguna spesifik
+      } catch (Exception e) {
+          e.printStackTrace();
+          JOptionPane.showMessageDialog(null, "Error initializing Portofolio: " + e.getMessage());
+      }
   }
-}
+
+  // Default constructor (jika ada bagian lain yang masih memanggil tanpa parameter)
+  // Ini bisa dihapus jika semua pemanggilan Portofolio sudah menggunakan parameter userId
+  public Portofolio() {
+      // Default ke userId 1 jika dipanggil tanpa parameter
+      this(1); 
+  }
   
   private void initializeJenisColors() {
       // Warna untuk berbagai jenis portofolio
@@ -164,7 +175,8 @@ public class Portofolio extends JFrame {
 
   private void loadPortofolioData() {
       try {
-          portofolioList = portofolioDAO.getAllPortofolioByCurrentUser();
+          // Memanggil metode untuk mengambil data portofolio berdasarkan userId dari instance ini
+          portofolioList = portofolioDAO.getAllPortofolioByUserId(this.userId);
           displayPortofolio();
       } catch (Exception e) {
           System.err.println("Error loading portfolio data: " + e.getMessage());
@@ -425,6 +437,7 @@ public class Portofolio extends JFrame {
               } else {
                   // Create new portfolio item
                   Portofolioo portfolio = new Portofolioo();
+                  portfolio.setUserId(this.userId); // Set userId dari instance Portofolio ini
                   portfolio.setJenis(jenis);
                   portfolio.setJudul(judul);
                   portfolio.setLink(link.isEmpty() ? null : link);
@@ -541,7 +554,8 @@ public class Portofolio extends JFrame {
       githubUrlLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
       githubUrlLabel.setForeground(new Color(156, 163, 175));
       githubUrlLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
+      githubUrlLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR)); // Make link clickable
+      
       githubInfoPanel.add(githubTitleLabel);
       githubInfoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
       githubInfoPanel.add(githubDescLabel);
@@ -617,50 +631,50 @@ public class Portofolio extends JFrame {
       return wrapperPanel;
   }
 
-private void displayPortofolio() {
-    portofolioPanel.removeAll();
-    
-    if (portofolioList.isEmpty()) {
-        // Empty state
-        JPanel emptyPanel = new JPanel();
-        emptyPanel.setLayout(new BoxLayout(emptyPanel, BoxLayout.Y_AXIS));
-        emptyPanel.setOpaque(false);
-        emptyPanel.setBorder(new EmptyBorder(40, 0, 40, 0));
-        
-        JLabel emptyLabel = new JLabel("Belum ada portofolio");
-        emptyLabel.setFont(new Font("SansSerif", Font.ITALIC, 16));
-        emptyLabel.setForeground(new Color(156, 163, 175));
-        emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        JLabel emptyDescLabel = new JLabel("Mulai tambahkan karya terbaik Anda");
-        emptyDescLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        emptyDescLabel.setForeground(new Color(156, 163, 175));
-        emptyDescLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        emptyPanel.add(emptyLabel);
-        emptyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        emptyPanel.add(emptyDescLabel);
-        
-        portofolioPanel.add(emptyPanel);
-    } else {
-        // Display portfolio items
-        for (int i = 0; i < portofolioList.size(); i++) {
-            Portofolioo item = portofolioList.get(i);
-            JPanel itemPanel = createPortfolioItemPanel(item);
-            portofolioPanel.add(itemPanel);
-            
-            // Add spacing between items (except for the last item)
-            if (i < portofolioList.size() - 1) {
-                portofolioPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-            }
-        }
-    }
-    
-    portofolioPanel.revalidate();
-    portofolioPanel.repaint();
-}
+  private void displayPortofolio() {
+      portofolioPanel.removeAll();
+      
+      if (portofolioList.isEmpty()) {
+          // Empty state
+          JPanel emptyPanel = new JPanel();
+          emptyPanel.setLayout(new BoxLayout(emptyPanel, BoxLayout.Y_AXIS));
+          emptyPanel.setOpaque(false);
+          emptyPanel.setBorder(new EmptyBorder(40, 0, 40, 0));
+          
+          JLabel emptyLabel = new JLabel("Belum ada portofolio");
+          emptyLabel.setFont(new Font("SansSerif", Font.ITALIC, 16));
+          emptyLabel.setForeground(new Color(156, 163, 175));
+          emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+          
+          JLabel emptyDescLabel = new JLabel("Mulai tambahkan karya terbaik Anda");
+          emptyDescLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+          emptyDescLabel.setForeground(new Color(156, 163, 175));
+          emptyDescLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+          
+          emptyPanel.add(emptyLabel);
+          emptyPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+          emptyPanel.add(emptyDescLabel);
+          
+          portofolioPanel.add(emptyPanel);
+      } else {
+          // Display portfolio items
+          for (int i = 0; i < portofolioList.size(); i++) {
+              Portofolioo item = portofolioList.get(i);
+              JPanel itemPanel = createPortfolioItemPanel(item);
+              portofolioPanel.add(itemPanel);
+              
+              // Add spacing between items (except for the last item)
+              if (i < portofolioList.size() - 1) {
+                  portofolioPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+              }
+          }
+      }
+      
+      portofolioPanel.revalidate();
+      portofolioPanel.repaint();
+  }
 
-private JPanel createPortfolioItemPanel(Portofolioo item) {
+  private JPanel createPortfolioItemPanel(Portofolioo item) {
     // Main item panel dengan border
     JPanel itemPanel = new JPanel(new BorderLayout());
     itemPanel.setBackground(Color.WHITE);
@@ -691,42 +705,39 @@ private JPanel createPortfolioItemPanel(Portofolioo item) {
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
     buttonPanel.setOpaque(false);
     
-    // Edit button - DIPERBAIKI
+    // Edit button
     JButton editBtn = new JButton("Edit");
     editBtn.setFont(new Font("SansSerif", Font.BOLD, 12));
     editBtn.setForeground(Color.WHITE);
-    editBtn.setBackground(new Color(59, 130, 246)); // Warna asli biru
+    editBtn.setBackground(new Color(59, 130, 246)); 
     editBtn.setPreferredSize(new Dimension(60, 28));
     editBtn.setFocusPainted(false);
-    editBtn.setBorderPainted(false); // Tambahkan ini
-    editBtn.setOpaque(true); // Tambahkan ini
-    editBtn.setContentAreaFilled(true); // Tambahkan ini
+    editBtn.setBorderPainted(false);
+    editBtn.setOpaque(true);
+    editBtn.setContentAreaFilled(true);
     
-    // Action listener untuk edit
     editBtn.addActionListener(e -> showEditDialog(item));
     
-    // Hover effect untuk edit button - DIPERBAIKI
     editBtn.addMouseListener(new java.awt.event.MouseAdapter() {
         public void mouseEntered(java.awt.event.MouseEvent evt) {
-            editBtn.setBackground(new Color(37, 99, 235)); // Biru lebih gelap saat hover
+            editBtn.setBackground(new Color(37, 99, 235)); 
         }
         public void mouseExited(java.awt.event.MouseEvent evt) {
-            editBtn.setBackground(new Color(59, 130, 246)); // Kembali ke biru asli
+            editBtn.setBackground(new Color(59, 130, 246)); 
         }
     });
     
-    // Delete button - DIPERBAIKI
+    // Delete button
     JButton deleteBtn = new JButton("Hapus");
     deleteBtn.setFont(new Font("SansSerif", Font.BOLD, 12));
     deleteBtn.setForeground(Color.WHITE);
-    deleteBtn.setBackground(new Color(239, 68, 68)); // Warna asli merah
+    deleteBtn.setBackground(new Color(239, 68, 68)); 
     deleteBtn.setPreferredSize(new Dimension(90, 28));
     deleteBtn.setFocusPainted(false);
-    deleteBtn.setBorderPainted(false); // Tambahkan ini
-    deleteBtn.setOpaque(true); // Tambahkan ini
-    deleteBtn.setContentAreaFilled(true); // Tambahkan ini
+    deleteBtn.setBorderPainted(false);
+    deleteBtn.setOpaque(true); 
+    deleteBtn.setContentAreaFilled(true); 
     
-    // Action listener untuk delete
     deleteBtn.addActionListener(e -> {
         int result = JOptionPane.showConfirmDialog(
             this,
@@ -743,7 +754,7 @@ private JPanel createPortfolioItemPanel(Portofolioo item) {
                     JOptionPane.showMessageDialog(this, 
                         "Portofolio berhasil dihapus!", 
                         "Sukses", JOptionPane.INFORMATION_MESSAGE);
-                    loadPortofolioData(); // Refresh data
+                    loadPortofolioData(); 
                 } else {
                     JOptionPane.showMessageDialog(this, 
                         "Gagal menghapus portofolio!", 
@@ -757,13 +768,12 @@ private JPanel createPortfolioItemPanel(Portofolioo item) {
         }
     });
     
-    // Hover effect untuk delete button - DIPERBAIKI
     deleteBtn.addMouseListener(new java.awt.event.MouseAdapter() {
         public void mouseEntered(java.awt.event.MouseEvent evt) {
-            deleteBtn.setBackground(new Color(220, 38, 38)); // Merah lebih gelap saat hover
+            deleteBtn.setBackground(new Color(220, 38, 38)); 
         }
         public void mouseExited(java.awt.event.MouseEvent evt) {
-            deleteBtn.setBackground(new Color(239, 68, 68)); // Kembali ke merah asli
+            deleteBtn.setBackground(new Color(239, 68, 68));
         }
     });
     
@@ -817,17 +827,19 @@ private JPanel createPortfolioItemPanel(Portofolioo item) {
     itemPanel.add(contentPanel, BorderLayout.CENTER);
     
     return itemPanel;
-}
+  }
 
-public static void main(String[] args) {
-    SwingUtilities.invokeLater(() -> {
-        try {
-             javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        new Portofolio().setVisible(true);
-    });
-}
+  public static void main(String[] args) {
+      SwingUtilities.invokeLater(() -> {
+          try {
+               javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+          
+          // Ganti dengan ID pengguna yang valid untuk pengujian
+          int testUserId = 1; 
+          new Portofolio(testUserId).setVisible(true);
+      });
+  }
 }

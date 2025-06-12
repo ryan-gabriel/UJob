@@ -161,34 +161,51 @@ public class Login extends javax.swing.JFrame {
         tabPanel.setOpaque(false);
         
         JButton loginTab = new JButton("Login");
-        loginTab.setPreferredSize(new Dimension(100, 35));
+        loginTab.setPreferredSize(new Dimension(110, 35));
         loginTab.setBackground(new Color(37, 64, 143));
         loginTab.setForeground(Color.WHITE);
         loginTab.setBorder(BorderFactory.createEmptyBorder());
-        loginTab.setFont(new Font("Arial", Font.PLAIN, 12));
+        loginTab.setFont(new Font("Arial", Font.PLAIN, 11));
         
-        JButton registerTab = new JButton("Register");
-        registerTab.setPreferredSize(new Dimension(100, 35));
-        registerTab.setBackground(Color.LIGHT_GRAY);
-        registerTab.setForeground(Color.GRAY);
-        registerTab.setBorder(BorderFactory.createEmptyBorder());
-        registerTab.setFont(new Font("Arial", Font.PLAIN, 12));
+        JButton registerMahasiswaTab = new JButton("Register Mahasiswa");
+        registerMahasiswaTab.setPreferredSize(new Dimension(110, 35));
+        registerMahasiswaTab.setBackground(Color.LIGHT_GRAY);
+        registerMahasiswaTab.setForeground(Color.GRAY);
+        registerMahasiswaTab.setBorder(BorderFactory.createEmptyBorder());
+        registerMahasiswaTab.setFont(new Font("Arial", Font.PLAIN, 11));
 
         // --- PERUBAHAN DIMULAI: Memperbaiki aksi tombol Register ---
-        registerTab.addActionListener(e -> {
-            new Register().setVisible(true); // Membuka halaman Register
+        registerMahasiswaTab.addActionListener(e -> {
+            new RegisterMahasiswa().setVisible(true); // Membuka halaman Register
             this.dispose(); // Menutup halaman Login
         });
-        // --- PERUBAHAN SELESAI ---
+
+        JButton registerPerusahaanTab = new JButton("Register Perusahaan");
+        registerPerusahaanTab.setPreferredSize(new Dimension(110, 35));
+        registerPerusahaanTab.setBackground(Color.LIGHT_GRAY);
+        registerPerusahaanTab.setForeground(Color.GRAY);
+        registerPerusahaanTab.setBorder(BorderFactory.createEmptyBorder());
+        registerPerusahaanTab.setFont(new Font("Arial", Font.PLAIN, 11));
+
+        // --- PERUBAHAN DIMULAI: Memperbaiki aksi tombol Register ---
+        registerPerusahaanTab.addActionListener(e -> {
+            new RegisterPerusahaan().setVisible(true); // Membuka halaman Register
+            this.dispose(); // Menutup halaman Login
+        });
         
         tabPanel.add(loginTab);
-        tabPanel.add(registerTab);
+        tabPanel.add(registerMahasiswaTab);
+        tabPanel.add(registerPerusahaanTab);
         
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.insets = new Insets(0, 0, 20, 0);
+        gbc.weightx = 1.0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         loginContainer.add(tabPanel, gbc);
+        gbc.weightx = 0; // reset after use
+        gbc.fill = GridBagConstraints.HORIZONTAL; // keep fill for next components
         
         JLabel welcomeLabel = new JLabel("WELCOME SOBAT UPI");
         welcomeLabel.setFont(new Font("Arial", Font.PLAIN, 11));

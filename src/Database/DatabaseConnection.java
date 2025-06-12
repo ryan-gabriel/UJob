@@ -12,6 +12,7 @@ public class DatabaseConnection {
     private static DatabaseConnection instance;
     private Connection connection;
 
+    // Konstruktor dibuat package-private untuk Singleton pattern
     DatabaseConnection() {
         try {
             String url = "jdbc:mysql://localhost:3306/ujob?useSSL=false&serverTimezone=UTC";

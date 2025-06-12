@@ -30,12 +30,11 @@ public class EditAkademikDialog extends JDialog {
     private void initializeUI(String currentAcademicText) {
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         
-        // [PERBAIKAN] Menghapus 'gap unrel' dari definisi kolom utama untuk menghindari error.
-        // Gap akan ditambahkan pada komponennya langsung.
+        // [PERBAIKAN] 'gap unrelated' dihapus dari definisi kolom utama karena sintaksnya salah
+        // dan menyebabkan error saat dialog dibuat. Jarak akan ditambahkan pada komponennya langsung.
         JPanel mainPanel = new JPanel(new MigLayout(
-            "insets 25, wrap 4",
-            "[right][grow, fill, 150px::]" + 
-            "[right][grow, fill, 150px::]"
+            "insets 25, wrap 4", // Layout constraints
+            "[right][grow, fill, 150px::][right][grow, fill, 150px::]" // Column constraints
         ));
         mainPanel.setBackground(Color.WHITE);
 
@@ -64,21 +63,18 @@ public class EditAkademikDialog extends JDialog {
         }
 
         // [PERBAIKAN] Menambahkan constraint 'gap unrelated' langsung ke komponen label
-        // di kolom ketiga untuk membuat jarak.
+        // di kolom ketiga untuk membuat jarak antar kolom. Ini adalah cara yang benar.
         
-        // Baris 1
         mainPanel.add(new JLabel("NIM:"));
         mainPanel.add(textFields.get("NIM"));
         mainPanel.add(new JLabel("Fakultas:"), "gap unrelated");
         mainPanel.add(textFields.get("Fakultas"));
 
-        // Baris 2
         mainPanel.add(new JLabel("Program Studi:"));
         mainPanel.add(textFields.get("Program Studi"));
         mainPanel.add(new JLabel("Angkatan:"), "gap unrelated");
         mainPanel.add(textFields.get("Angkatan"));
 
-        // Baris 3
         mainPanel.add(new JLabel("Semester:"));
         mainPanel.add(textFields.get("Semester"));
         mainPanel.add(new JLabel("IPK:"), "gap unrelated");
@@ -117,39 +113,39 @@ public class EditAkademikDialog extends JDialog {
     }
 
     private void simpanPerubahan() {
+        // [PERBAIKAN] Logika validasi yang lebih baik
         JTextField nimField = textFields.get("NIM");
         JTextField angkatanField = textFields.get("Angkatan");
         JTextField semesterField = textFields.get("Semester");
         JTextField ipkField = textFields.get("IPK");
         
+        // Reset warna background jika sebelumnya error
         Color defaultBgColor = UIManager.getColor("TextField.background");
-        nimField.setBackground(defaultBgColor);
-        angkatanField.setBackground(defaultBgColor);
-        semesterField.setBackground(defaultBgColor);
-        ipkField.setBackground(defaultBgColor);
+        for (JTextField field : textFields.values()) {
+            field.setBackground(defaultBgColor);
+        }
         
+        // Validasi setiap field numerik
         try {
             if (!nimField.getText().trim().isEmpty()) Long.parseLong(nimField.getText().trim());
         } catch (NumberFormatException e) {
             showError(nimField, "NIM harus berupa angka.");
             return;
         }
-        
         try {
             if (!angkatanField.getText().trim().isEmpty()) Integer.parseInt(angkatanField.getText().trim());
         } catch (NumberFormatException e) {
             showError(angkatanField, "Angkatan harus berupa angka (contoh: 2023).");
             return;
         }
-        
         try {
             if (!semesterField.getText().trim().isEmpty()) Integer.parseInt(semesterField.getText().trim());
         } catch (NumberFormatException e) {
             showError(semesterField, "Semester harus berupa angka.");
             return;
         }
-        
         try {
+            // Mengizinkan koma sebagai pemisah desimal dan menggantinya dengan titik
             if (!ipkField.getText().trim().isEmpty()) Double.parseDouble(ipkField.getText().trim().replace(',', '.'));
         } catch (NumberFormatException e) {
             showError(ipkField, "IPK harus berupa angka desimal (contoh: 3.85).");
@@ -160,7 +156,7 @@ public class EditAkademikDialog extends JDialog {
         String[] labelsInOrder = {"NIM", "Fakultas", "Program Studi", "Angkatan", "Semester", "IPK"};
         for (String label : labelsInOrder) {
             if (sb.length() > 0) {
-                sb.append(", ");
+                sb.append(",");
             }
             sb.append(label).append(":").append(textFields.get(label).getText().trim());
         }
@@ -177,4 +173,6 @@ public class EditAkademikDialog extends JDialog {
     public String getUpdatedData() {
         return this.updatedData;
     }
+    
+    // [PERBAIKAN] Menghapus metode isSaved() yang tidak digunakan dan menyebabkan error.
 }

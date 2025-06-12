@@ -11,9 +11,11 @@ public class PortofoliooDAO {
     public PortofoliooDAO() {
         try {
             this.connection = DatabaseConnection.getConnection();
+            System.out.println("Koneksi database berhasil!"); // Debugging line
         } catch (Exception e) {
             System.err.println("Error connecting to database: " + e.getMessage());
             e.printStackTrace();
+            System.out.println("Gagal koneksi database!"); // Debugging line
         }
     }
     
@@ -24,8 +26,7 @@ public class PortofoliooDAO {
         String sql = "INSERT INTO portofolio (user_id, judul, jenis, deskripsi, link, tanggal_upload) VALUES (?, ?, ?, ?, ?, NOW())";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            // Ambil user_id dari session (sementara hardcode ke 1)
-            int currentUserId = getCurrentUserId();
+            int currentUserId = getCurrentUserId(); // Get hardcoded user ID
             
             stmt.setInt(1, currentUserId);
             stmt.setString(2, portofolio.getJudul());
@@ -34,6 +35,7 @@ public class PortofoliooDAO {
             stmt.setString(5, portofolio.getLink());
             
             int rowsAffected = stmt.executeUpdate();
+            System.out.println("Rows affected by insert: " + rowsAffected); // Debugging line
             return rowsAffected > 0;
             
         } catch (SQLException e) {
@@ -118,14 +120,15 @@ public class PortofoliooDAO {
         String sql = "SELECT * FROM portofolio WHERE user_id = ? ORDER BY tanggal_upload DESC";
         
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, getCurrentUserId());
+            stmt.setInt(1, getCurrentUserId()); // Using hardcoded user ID
+            System.out.println("Executing SQL: " + sql + " with userId: " + getCurrentUserId()); // Debugging line
             
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Portofolioo portofolio = mapResultSetToPortofolio(rs);
                 portofolioList.add(portofolio);
             }
-            
+            System.out.println("Number of portfolios found: " + portofolioList.size()); // Debugging line
         } catch (SQLException e) {
             System.err.println("Error getting all portfolio: " + e.getMessage());
             e.printStackTrace();
@@ -277,7 +280,7 @@ public class PortofoliooDAO {
      * TODO: Implementasi session management yang proper
      */
     private int getCurrentUserId() {
-        // Sementara hardcode ke 1
+        // Sementara hardcode ke 1.
         // Nanti ganti dengan session management yang proper
         return 1;
     }

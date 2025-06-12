@@ -52,16 +52,12 @@ public class KelolaLowongan extends JFrame {
     private JLabel draftLabel;
     private JLabel totalLamaranLabel;
     
-    // UBAH INI SESUAI USER ID YANG SEDANG LOGIN
-    private int currentUserId = 13; // Ganti dengan 13 sesuai data Anda
+    private int currentUserId;
     
     public KelolaLowongan() {
-        initializeDatabase();
-        initializeUI();
-        loadData();
+        this(13); // User ID default untuk testing
     }
     
-    // Konstruktor dengan parameter user ID
     public KelolaLowongan(int userId) {
         this.currentUserId = userId;
         initializeDatabase();
@@ -121,7 +117,6 @@ public class KelolaLowongan extends JFrame {
         panel.add(listHeaderPanel);
         panel.add(Box.createRigidArea(new Dimension(0, 15)));
         
-        // Initialize job list panel
         jobListPanel = new JPanel();
         jobListPanel.setLayout(new BoxLayout(jobListPanel, BoxLayout.Y_AXIS));
         jobListPanel.setOpaque(false);
@@ -155,12 +150,10 @@ public class KelolaLowongan extends JFrame {
         statsContainer.setLayout(new BoxLayout(statsContainer, BoxLayout.Y_AXIS));
         statsContainer.setOpaque(false);
 
-        // Stat cards panel
         JPanel statCardsPanel = new JPanel(new GridLayout(1, 4, 10, 0));
         statCardsPanel.setOpaque(false);
         statCardsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Initialize stat labels
         totalLowonganLabel = new JLabel("0");
         lowonganAktifLabel = new JLabel("0");
         draftLabel = new JLabel("0");
@@ -173,7 +166,6 @@ public class KelolaLowongan extends JFrame {
 
         statsContainer.add(statCardsPanel);
 
-        // Search container
         JPanel searchContainer = new JPanel();
         searchContainer.setLayout(new BoxLayout(searchContainer, BoxLayout.X_AXIS));
         searchContainer.setOpaque(false);
@@ -201,31 +193,13 @@ public class KelolaLowongan extends JFrame {
             }
         });
         
-        // Add search functionality with timer for real-time search
-        Timer searchTimer = new Timer(500, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                performSearch();
-            }
-        });
+        Timer searchTimer = new Timer(500, e -> performSearch());
         searchTimer.setRepeats(false);
         
-        searchField.addActionListener(e -> performSearch());
-        
-        // Add key listener for real-time search
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                searchTimer.restart();
-            }
-            @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                searchTimer.restart();
-            }
-            @Override
-            public void changedUpdate(javax.swing.event.DocumentEvent e) {
-                searchTimer.restart();
-            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { searchTimer.restart(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { searchTimer.restart(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { searchTimer.restart(); }
         });
 
         searchContainer.add(searchField);
@@ -238,14 +212,10 @@ public class KelolaLowongan extends JFrame {
         addButton.setForeground(Color.WHITE);
         addButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         addButton.setBorder(new EmptyBorder(8, 18, 8, 18));
-        
-        // Add action listener for add button
         addButton.addActionListener(e -> openTambahLowonganForm());
         
         searchContainer.add(addButton);
-
         statsContainer.add(searchContainer);
-
         return statsContainer;
     }
     
@@ -277,41 +247,28 @@ public class KelolaLowongan extends JFrame {
     }
     
     private void loadData() {
-        System.out.println("Loading data for user ID: " + currentUserId); // Debug
         loadStatistics();
         loadJobList();
     }
     
     private void loadStatistics() {
         try {
-            // Load statistics from database dengan filter user ID
             int totalLowongan = kelolaLowonganDAO.getTotalLowonganByUser(currentUserId);
             int lowonganAktif = kelolaLowonganDAO.getTotalLowonganAktifByUser(currentUserId);
-            int draft = 0; // Implement draft functionality if needed
+            int draft = 0; // Fungsi draft belum ada di DB
             
-            // Calculate total lamaran
-            List<Lowongan> allLowongan = kelolaLowonganDAO.getLowonganByUserId(currentUserId);
-            int totalLamaran = 0;
-            if (allLowongan != null && !allLowongan.isEmpty()) {
-                totalLamaran = allLowongan.stream().mapToInt(Lowongan::getJumlahLamaran).sum();
-            }
+            // PERBAIKAN: Gunakan method DAO yang akurat untuk menghitung total lamaran
+            int totalLamaran = kelolaLowonganDAO.getTotalLamaranByUser(currentUserId);
             
-            // Debug output
-            System.out.println("Total Lowongan: " + totalLowongan);
-            System.out.println("Lowongan Aktif: " + lowonganAktif);
-            System.out.println("Total Lamaran: " + totalLamaran);
-            System.out.println("Jumlah data lowongan: " + (allLowongan != null ? allLowongan.size() : 0));
-            
-            // Update labels
             totalLowonganLabel.setText(String.valueOf(totalLowongan));
             lowonganAktifLabel.setText(String.valueOf(lowonganAktif));
             draftLabel.setText(String.valueOf(draft));
             totalLamaranLabel.setText(String.valueOf(totalLamaran));
             
         } catch (Exception e) {
-            e.printStackTrace(); // Debug
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, 
-                "Error loading statistics: " + e.getMessage(), 
+                "Error memuat statistik: " + e.getMessage(), 
                 "Database Error", 
                 JOptionPane.ERROR_MESSAGE);
         }
@@ -320,12 +277,7 @@ public class KelolaLowongan extends JFrame {
     private void loadJobList() {
         try {
             jobListPanel.removeAll();
-            
             List<Lowongan> lowonganList = kelolaLowonganDAO.getLowonganByUserId(currentUserId);
-            
-            // Debug output
-            System.out.println("Loading job list for user ID: " + currentUserId);
-            System.out.println("Found " + (lowonganList != null ? lowonganList.size() : 0) + " lowongan");
             
             if (lowonganList == null || lowonganList.isEmpty()) {
                 JLabel noDataLabel = new JLabel("Belum ada lowongan yang dibuat");
@@ -335,10 +287,7 @@ public class KelolaLowongan extends JFrame {
                 jobListPanel.add(noDataLabel);
             } else {
                 for (int i = 0; i < lowonganList.size(); i++) {
-                    Lowongan lowongan = lowonganList.get(i);
-                    System.out.println("Adding job card: " + lowongan.getJudulPekerjaan()); // Debug
-                    jobListPanel.add(createJobCard(lowongan));
-                    
+                    jobListPanel.add(createJobCard(lowonganList.get(i)));
                     if (i < lowonganList.size() - 1) {
                         jobListPanel.add(Box.createRigidArea(new Dimension(0, 10)));
                     }
@@ -349,9 +298,9 @@ public class KelolaLowongan extends JFrame {
             jobListPanel.repaint();
             
         } catch (Exception e) {
-            e.printStackTrace(); // Debug
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, 
-                "Error loading job list: " + e.getMessage(), 
+                "Error memuat daftar lowongan: " + e.getMessage(), 
                 "Database Error", 
                 JOptionPane.ERROR_MESSAGE);
         }
@@ -360,27 +309,23 @@ public class KelolaLowongan extends JFrame {
     private void performSearch() {
         try {
             String keyword = searchField.getText().trim();
-            
             if (keyword.isEmpty() || keyword.equals("Cari lowongan...")) {
                 loadJobList();
                 return;
             }
             
             jobListPanel.removeAll();
-            
             List<Lowongan> searchResults = kelolaLowonganDAO.searchLowonganByUser(keyword, currentUserId);
             
             if (searchResults == null || searchResults.isEmpty()) {
-                JLabel noResultLabel = new JLabel("Tidak ada hasil pencarian untuk: " + keyword);
+                JLabel noResultLabel = new JLabel("Tidak ada hasil pencarian untuk: '" + keyword + "'");
                 noResultLabel.setFont(new Font("SansSerif", Font.ITALIC, 16));
                 noResultLabel.setForeground(Color.GRAY);
                 noResultLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
                 jobListPanel.add(noResultLabel);
             } else {
                 for (int i = 0; i < searchResults.size(); i++) {
-                    Lowongan lowongan = searchResults.get(i);
-                    jobListPanel.add(createJobCard(lowongan));
-                    
+                    jobListPanel.add(createJobCard(searchResults.get(i)));
                     if (i < searchResults.size() - 1) {
                         jobListPanel.add(Box.createRigidArea(new Dimension(0, 10)));
                     }
@@ -391,9 +336,9 @@ public class KelolaLowongan extends JFrame {
             jobListPanel.repaint();
             
         } catch (Exception e) {
-            e.printStackTrace(); // Debug
+            e.printStackTrace();
             JOptionPane.showMessageDialog(this, 
-                "Error during search: " + e.getMessage(), 
+                "Error saat mencari: " + e.getMessage(), 
                 "Database Error", 
                 JOptionPane.ERROR_MESSAGE);
         }
@@ -407,72 +352,48 @@ public class KelolaLowongan extends JFrame {
             new EmptyBorder(20, 25, 20, 25)
         ));
         cardPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cardPanel.setMinimumSize(new Dimension(1000, 180));
-        cardPanel.setPreferredSize(new Dimension(1000, 180));
         cardPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
 
-        // Left side - Job info
+        // Left side
         JPanel leftPanel = new JPanel();
         leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
         leftPanel.setOpaque(false);
-        leftPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        leftPanel.setPreferredSize(new Dimension(600, 140));
 
-        // Title
-        JLabel titleLabel = new JLabel(lowongan.getJudulPekerjaan() != null ? lowongan.getJudulPekerjaan() : "Tidak ada judul");
+        JLabel titleLabel = new JLabel(lowongan.getJudulPekerjaan());
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 18));
-        titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         leftPanel.add(titleLabel);
         
-        // Company name
-        JLabel companyLabel = new JLabel(lowongan.getNamaPerusahaan() != null ? lowongan.getNamaPerusahaan() : "Tidak ada nama perusahaan");
+        JLabel companyLabel = new JLabel(lowongan.getNamaPerusahaan());
         companyLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
         companyLabel.setForeground(new Color(107, 114, 128));
-        companyLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         leftPanel.add(companyLabel);
         
         leftPanel.add(Box.createRigidArea(new Dimension(0, 12)));
 
-        // Badge and status panel
         JPanel badgeStatusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         badgeStatusPanel.setOpaque(false);
         badgeStatusPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        // Job type badge
-        String jenisLowongan = lowongan.getJenisLowongan() != null ? lowongan.getJenisLowongan() : "Tidak diketahui";
+        String jenisLowongan = lowongan.getJenisLowongan();
         JLabel typeLabel = new JLabel(jenisLowongan);
         typeLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
         typeLabel.setForeground(Color.WHITE);
         typeLabel.setOpaque(true);
         typeLabel.setBorder(new EmptyBorder(4, 10, 4, 10));
-        
-        if (jenisLowongan.equalsIgnoreCase("Magang")) {
-            typeLabel.setBackground(new Color(34, 197, 94)); // Green
-        } else {
-            typeLabel.setBackground(new Color(59, 130, 246)); // Blue
-        }
-        
+        typeLabel.setBackground(jenisLowongan.equalsIgnoreCase("Magang") ? new Color(34, 197, 94) : new Color(59, 130, 246));
         badgeStatusPanel.add(typeLabel);
         badgeStatusPanel.add(Box.createRigidArea(new Dimension(8, 0)));
         
-        // Status label
-        String status = lowongan.getStatus() != null ? lowongan.getStatus() : "Tidak diketahui";
+        String status = lowongan.getStatus();
         JLabel statusLabel = new JLabel(status);
         statusLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setOpaque(true);
         statusLabel.setBorder(new EmptyBorder(4, 10, 4, 10));
-        
-        if (status.equalsIgnoreCase("aktif")) {
-            statusLabel.setBackground(new Color(34, 197, 94)); // Green
-        } else {
-            statusLabel.setBackground(new Color(239, 68, 68)); // Red
-        }
-        
+        statusLabel.setBackground(status.equalsIgnoreCase("aktif") ? new Color(34, 197, 94) : new Color(239, 68, 68));
         badgeStatusPanel.add(statusLabel);
         badgeStatusPanel.add(Box.createRigidArea(new Dimension(15, 0)));
         
-        // Applicants count
         JLabel applicantsLabel = new JLabel(lowongan.getJumlahLamaran() + " lamaran");
         applicantsLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
         applicantsLabel.setForeground(Color.WHITE);
@@ -482,113 +403,39 @@ public class KelolaLowongan extends JFrame {
         badgeStatusPanel.add(applicantsLabel);
         
         leftPanel.add(badgeStatusPanel);
-        leftPanel.add(Box.createRigidArea(new Dimension(0, 12)));
+        leftPanel.add(Box.createVerticalGlue());
 
-        // Description
-        String description = lowongan.getDeskripsi();
-        if (description != null && description.length() > 200) {
-            description = description.substring(0, 200) + "...";
-        }
-                
-        JLabel descLabel = new JLabel("<html><div style='width: 550px; color: #6B7280;'>" + 
-                                     (description != null ? description : "Tidak ada deskripsi") + 
-                                     "</div></html>");
-        descLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
-        descLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        leftPanel.add(descLabel);
+        cardPanel.add(leftPanel, BorderLayout.CENTER);
         
-        cardPanel.add(leftPanel, BorderLayout.WEST);
-        
-        // Right side - Info and actions
+        // Right side
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setOpaque(false);
         rightPanel.setBorder(new EmptyBorder(0, 30, 0, 0));
-        rightPanel.setPreferredSize(new Dimension(300, 140));
-        rightPanel.setMinimumSize(new Dimension(300, 140));
         
-        // Info panel
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setOpaque(false);
-        infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        // Location
-        JLabel lokasiLine = new JLabel("Lokasi    : " + 
-                                     (lowongan.getLokasiKerja() != null ? lowongan.getLokasiKerja() : "-"));
-        lokasiLine.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        lokasiLine.setForeground(new Color(75, 85, 99));
-        lokasiLine.setAlignmentX(Component.LEFT_ALIGNMENT);
-        infoPanel.add(lokasiLine);
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 4)));
+        infoPanel.add(new JLabel("Lokasi    : " + lowongan.getLokasiKerja()));
+        infoPanel.add(new JLabel("Gaji        : " + lowongan.getGaji()));
+        infoPanel.add(new JLabel("Durasi    : " + lowongan.getDurasi()));
+        String deadlineStr = (lowongan.getTanggalDeadline() != null) ? new SimpleDateFormat("dd MMM yyyy").format(lowongan.getTanggalDeadline()) : "-";
+        infoPanel.add(new JLabel("Deadline : " + deadlineStr));
+        rightPanel.add(infoPanel, BorderLayout.CENTER);
         
-        // Salary
-        JLabel gajiLine = new JLabel("Gaji        : " + 
-                                   (lowongan.getGaji() != null ? lowongan.getGaji() : "-"));
-        gajiLine.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        gajiLine.setForeground(new Color(75, 85, 99));
-        gajiLine.setAlignmentX(Component.LEFT_ALIGNMENT);
-        infoPanel.add(gajiLine);
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-        
-        // Duration
-        JLabel durasiLine = new JLabel("Durasi    : " + 
-                                     (lowongan.getDurasi() != null ? lowongan.getDurasi() : "-"));
-        durasiLine.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        durasiLine.setForeground(new Color(75, 85, 99));
-        durasiLine.setAlignmentX(Component.LEFT_ALIGNMENT);
-        infoPanel.add(durasiLine);
-        infoPanel.add(Box.createRigidArea(new Dimension(0, 4)));
-        
-        // Deadline
-        String deadlineStr = "-";
-        if (lowongan.getTanggalDeadline() != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy");
-            deadlineStr = sdf.format(lowongan.getTanggalDeadline());
-        }
-        JLabel deadlineLine = new JLabel("Deadline : " + deadlineStr);
-        deadlineLine.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        deadlineLine.setForeground(new Color(75, 85, 99));
-        deadlineLine.setAlignmentX(Component.LEFT_ALIGNMENT);
-        infoPanel.add(deadlineLine);
-        
-        rightPanel.add(infoPanel, BorderLayout.NORTH);
-        
-        // Action buttons
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
         actionPanel.setOpaque(false);
-        actionPanel.setBorder(new EmptyBorder(15, 0, 0, 0));
         
         JButton lihatButton = new JButton("Lihat");
-        lihatButton.setFont(new Font("SansSerif", Font.BOLD, 11));
-        lihatButton.setFocusPainted(false);
-        lihatButton.setBackground(new Color(59, 130, 246));
-        lihatButton.setForeground(Color.WHITE);
-        lihatButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        lihatButton.setBorder(new EmptyBorder(6, 14, 6, 14));
         lihatButton.addActionListener(e -> lihatLowongan(lowongan));
-        
         JButton editButton = new JButton("Edit");
-        editButton.setFont(new Font("SansSerif", Font.BOLD, 11));
-        editButton.setFocusPainted(false);
-        editButton.setBackground(new Color(156, 163, 175));
-        editButton.setForeground(Color.WHITE);
-        editButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        editButton.setBorder(new EmptyBorder(6, 14, 6, 14));
         editButton.addActionListener(e -> editLowongan(lowongan));
-        
         JButton hapusButton = new JButton("Hapus");
-        hapusButton.setFont(new Font("SansSerif", Font.BOLD, 11));
-        hapusButton.setFocusPainted(false);
-        hapusButton.setBackground(new Color(239, 68, 68));
-        hapusButton.setForeground(Color.WHITE);
-        hapusButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        hapusButton.setBorder(new EmptyBorder(6, 14, 6, 14));
         hapusButton.addActionListener(e -> hapusLowongan(lowongan));
         
         actionPanel.add(lihatButton);
         actionPanel.add(editButton);
         actionPanel.add(hapusButton);
-        
         rightPanel.add(actionPanel, BorderLayout.SOUTH);
         
         cardPanel.add(rightPanel, BorderLayout.EAST);

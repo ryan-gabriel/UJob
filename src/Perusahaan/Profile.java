@@ -1,4 +1,3 @@
-
 package Perusahaan;
 
 import Auth.SessionManager;
@@ -44,28 +43,36 @@ public class Profile extends JFrame {
     
     // Data perusahaan dari database
     private ProfilPerusahaan currentProfile;
-    private ProfilePerusahaanDAO ProfilePerusahaanDAO;
+    private ProfilePerusahaanDAO profilePerusahaanDAO; // Perbaikan penamaan variabel
     
     // Session Manager
     private SessionManager sessionManager;
-
-    public Profile() {
+    
+    // PERBAIKAN: Buat konstruktor ini fungsional
+    public Profile(int activeUserId) {
+        // Logika utama sekarang ada di sini, dipanggil oleh PerusahaanNavigation
         this.sessionManager = SessionManager.getInstance();
-        this.ProfilePerusahaanDAO = new ProfilePerusahaanDAO();
+        this.profilePerusahaanDAO = new ProfilePerusahaanDAO();
         
-        // Cek apakah user sudah login
-        if (!sessionManager.isLoggedIn()) {
-            JOptionPane.showMessageDialog(null, 
-                "Anda harus login terlebih dahulu!", 
+        // Memastikan session sesuai dengan user yang dikirim
+        // (Dalam aplikasi nyata, login akan mengatur session ini)
+        if (sessionManager.getId() != activeUserId || !sessionManager.isLoggedIn()) {
+             JOptionPane.showMessageDialog(null, 
+                "Sesi tidak valid atau tidak cocok!\nMenutup halaman.", 
                 "Akses Ditolak", 
-                JOptionPane.WARNING_MESSAGE);
-            // Redirect ke halaman login atau tutup aplikasi
-            System.exit(0);
+                JOptionPane.ERROR_MESSAGE);
+            // Menutup hanya frame ini, bukan seluruh aplikasi
+            SwingUtilities.invokeLater(() -> dispose());
             return;
         }
         
         initializeUI();
         loadDataFromDatabase();
+    }
+    
+    // Konstruktor tanpa argumen untuk testing dari main method
+    public Profile() {
+        this(1); // Panggil konstruktor utama dengan ID user dummy
     }
 
     private void initializeUI() {
@@ -112,7 +119,7 @@ public class Profile extends JFrame {
         try {
             // Menggunakan user ID dari session yang sedang login
             int currentUserId = sessionManager.getId();
-            currentProfile = ProfilePerusahaanDAO.getProfilPerusahaanByUserId(currentUserId);
+            currentProfile = profilePerusahaanDAO.getProfilPerusahaanByUserId(currentUserId);
             
             if (currentProfile != null) {
                 // Update UI dengan data dari database
@@ -175,17 +182,6 @@ public class Profile extends JFrame {
         }
         
         locationLabel.setText(locationText);
-    }
-    
-    private void createEmptyProfile() {
-        // Buat profil kosong dengan data minimal dari session
-        nameLabel.setText("Nama Perusahaan Belum Diisi");
-        connectionLabel.setText("0");
-        employeeLabel.setText("0");
-        taglineLabel.setText("Deskripsi perusahaan belum diisi");
-        locationLabel.setText("Alamat belum diisi | " + sessionManager.getEmail());
-        
-        displayEmptyCompanyInfo();
     }
     
     private void loadDefaultDataForNewUser() {
@@ -311,17 +307,14 @@ public class Profile extends JFrame {
         editProfileBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
         editProfileBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         
-        // Warna biru gelap untuk button
         editProfileBtn.setBackground(new Color(32, 64, 121));
         editProfileBtn.setForeground(Color.WHITE);
         editProfileBtn.setBorder(new EmptyBorder(10, 20, 10, 20));
         editProfileBtn.setOpaque(true);
         editProfileBtn.setBorderPainted(false);
         
-        // Action listener untuk edit profile - sekarang berfungsi
         editProfileBtn.addActionListener(e -> openEditProfileDialog());
         
-        // Hover effect
         editProfileBtn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 editProfileBtn.setBackground(new Color(25, 50, 95));
@@ -340,7 +333,6 @@ public class Profile extends JFrame {
             ImageIcon icon = new ImageIcon(getClass().getResource("/images/company-logo.png"));
             profileIcon.setIcon(icon);
         } catch (Exception e) {
-            // Icon default - lingkaran putih dengan teks
             profileIcon.setOpaque(true);
             profileIcon.setBackground(Color.WHITE);
             profileIcon.setText("LOGO");
@@ -354,16 +346,13 @@ public class Profile extends JFrame {
     }
 
     private JPanel createContentPanel() {
-        // Panel putih untuk konten bawah
         JPanel contentPanel = new JPanel(new MigLayout("wrap 1, fillx, insets 0", "[fill]"));
         contentPanel.setBackground(Color.WHITE);
         contentPanel.setBorder(BorderFactory.createLineBorder(new Color(229, 231, 235), 1));
 
-        // Inisialisasi komponen
         companyInfoPanel = new JPanel(new MigLayout("wrap 2, fillx, gap 40 15", "[140!][grow]"));
         companyInfoPanel.setBackground(Color.WHITE);
 
-        // Menambahkan section informasi perusahaan
         String sectionTitle = "Informasi " + (currentProfile != null && currentProfile.getNama() != null ? 
             currentProfile.getNama() : sessionManager.getUsername());
         contentPanel.add(createSectionPanel(sectionTitle, companyInfoPanel), "growx");
@@ -375,7 +364,6 @@ public class Profile extends JFrame {
         JPanel sectionPanel = new JPanel(new BorderLayout());
         sectionPanel.setBackground(Color.WHITE);
 
-        // Title Panel dengan Edit button
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(Color.WHITE);
         titlePanel.setBorder(new EmptyBorder(20, 20, 15, 20));
@@ -385,19 +373,17 @@ public class Profile extends JFrame {
         titleLabel.setForeground(new Color(31, 41, 55));
         
         JButton editButton = new JButton("Edit");
-        editButton.setForeground(new Color(59, 130, 246)); // Biru sesuai header
+        editButton.setForeground(new Color(59, 130, 246));
         editButton.setContentAreaFilled(false);
         editButton.setBorderPainted(false);
         editButton.setFont(new Font("SansSerif", Font.PLAIN, 14));
         editButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         
-        // Action listener untuk edit button - sekarang berfungsi
         editButton.addActionListener(e -> openEditProfileDialog());
         
         titlePanel.add(titleLabel, BorderLayout.WEST);
         titlePanel.add(editButton, BorderLayout.EAST);
         
-        // Content Wrapper
         JPanel contentWrapper = new JPanel(new BorderLayout());
         contentWrapper.setBorder(new EmptyBorder(0, 20, 20, 20));
         contentWrapper.setBackground(Color.WHITE);
@@ -409,13 +395,11 @@ public class Profile extends JFrame {
         return sectionPanel;
     }
 
-    // Method baru untuk membuka dialog edit profile
     private void openEditProfileDialog() {
         EditProfileDialog dialog = new EditProfileDialog(this);
         dialog.setVisible(true);
     }
 
-    // Inner class untuk dialog edit profile
     private class EditProfileDialog extends JDialog {
         private JTextField namaField;
         private JTextArea deskripsiArea;
@@ -441,7 +425,6 @@ public class Profile extends JFrame {
             JPanel mainPanel = new JPanel(new BorderLayout());
             mainPanel.setBackground(Color.WHITE);
 
-            // Header
             JPanel headerPanel = new JPanel(new BorderLayout());
             headerPanel.setBackground(new Color(59, 130, 246));
             headerPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -451,7 +434,6 @@ public class Profile extends JFrame {
             titleLabel.setForeground(Color.WHITE);
             headerPanel.add(titleLabel, BorderLayout.CENTER);
 
-            // Form Panel
             JPanel formPanel = new JPanel(new GridBagLayout());
             formPanel.setBackground(Color.WHITE);
             formPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -460,10 +442,8 @@ public class Profile extends JFrame {
             gbc.insets = new Insets(10, 10, 10, 10);
             gbc.anchor = GridBagConstraints.WEST;
 
-            // Initialize fields dengan data saat ini
             initializeFields();
 
-            // Add form fields
             addFormField(formPanel, gbc, 0, "Nama Perusahaan:", namaField);
             addFormField(formPanel, gbc, 1, "Deskripsi:", deskripsiArea);
             addFormField(formPanel, gbc, 2, "Alamat:", alamatField);
@@ -475,7 +455,6 @@ public class Profile extends JFrame {
             addFormField(formPanel, gbc, 8, "Jumlah Karyawan:", jumlahKaryawanField);
             addFormField(formPanel, gbc, 9, "Jumlah Koneksi:", jumlahKoneksiField);
 
-            // Button Panel
             JPanel buttonPanel = new JPanel();
             buttonPanel.setBackground(Color.WHITE);
             buttonPanel.setBorder(new EmptyBorder(10, 20, 20, 20));
@@ -501,7 +480,6 @@ public class Profile extends JFrame {
             buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
 
-            // Scroll pane untuk form
             JScrollPane scrollPane = new JScrollPane(formPanel);
             scrollPane.setBorder(BorderFactory.createEmptyBorder());
             scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -527,7 +505,6 @@ public class Profile extends JFrame {
             jumlahKaryawanField = new JTextField(20);
             jumlahKoneksiField = new JTextField(20);
 
-            // Set data saat ini jika ada
             if (currentProfile != null) {
                 namaField.setText(currentProfile.getNama() != null ? currentProfile.getNama() : "");
                 deskripsiArea.setText(currentProfile.getDeskripsi_perusahaan() != null ? currentProfile.getDeskripsi_perusahaan() : "");
@@ -573,13 +550,11 @@ public class Profile extends JFrame {
 
         private void saveProfile() {
             try {
-                // Validasi input
                 if (namaField.getText().trim().isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Nama perusahaan harus diisi!", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
 
-                // Buat atau update profil
                 ProfilPerusahaan profile = currentProfile != null ? currentProfile : new ProfilPerusahaan();
                 
                 profile.setUser_id(sessionManager.getId());
@@ -592,7 +567,6 @@ public class Profile extends JFrame {
                 profile.setKategori_produk_layanan(kategoriProdukField.getText().trim());
                 profile.setInformasi_kontak_lainnya(kontakLainnyaField.getText().trim());
                 
-                // Parse angka dengan validasi
                 try {
                     profile.setJumlah_karyawan(Integer.parseInt(jumlahKaryawanField.getText().trim()));
                 } catch (NumberFormatException e) {
@@ -605,19 +579,17 @@ public class Profile extends JFrame {
                     profile.setJumlah_koneksi(0);
                 }
 
-                // Simpan ke database
                 boolean success;
                 if (currentProfile != null) {
-                    success = ProfilePerusahaanDAO.updateProfilPerusahaan(profile);
+                    success = profilePerusahaanDAO.updateProfilPerusahaan(profile);
                 } else {
-                    success = ProfilePerusahaanDAO.insertProfilPerusahaan(profile);
+                    success = profilePerusahaanDAO.insertProfilPerusahaan(profile);
                 }
 
                 if (success) {
                     JOptionPane.showMessageDialog(this, "Profil berhasil disimpan!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
                     currentProfile = profile;
                     
-                    // Refresh tampilan utama
                     updateUIWithProfileData();
                     displayCompanyInfo();
                     
@@ -637,7 +609,6 @@ private void displayCompanyInfo() {
     companyInfoPanel.removeAll();
     
     if (currentProfile != null) {
-        // Data dari database
         String[][] companyData = {
             {"Bidang Industri", currentProfile.getJenis_industri() != null ? currentProfile.getJenis_industri() : "Belum diisi"},
             {"Alamat", currentProfile.getAlamat() != null ? currentProfile.getAlamat() : "Belum diisi"},
@@ -686,7 +657,6 @@ private void addInfoRow(String key, String value) {
     JLabel labelValue = new JLabel("<html>" + value.replace("\n", "<br>") + "</html>");
     labelValue.setFont(new Font("SansSerif", Font.PLAIN, 14));
     
-    // Jika data belum diisi, tampilkan dengan warna abu-abu dan italic
     if (value.equals("Belum diisi")) {
         labelValue.setForeground(new Color(156, 163, 175));
         labelValue.setFont(new Font("SansSerif", Font.ITALIC, 14));
@@ -698,7 +668,6 @@ private void addInfoRow(String key, String value) {
     companyInfoPanel.add(labelValue, "growx");
 }
 
-// Method untuk refresh data (bisa dipanggil setelah edit)
 public void refreshProfile() {
     loadDataFromDatabase();
 }
@@ -706,14 +675,11 @@ public void refreshProfile() {
 public static void main(String[] args) {
     SwingUtilities.invokeLater(() -> {
         try {
-            // Set Look and Feel untuk tampilan yang lebih baik
            javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
             e.printStackTrace();
         }
         
-       
-        new Profile().setVisible(true);
+       new Profile().setVisible(true);
     });
 }}
-

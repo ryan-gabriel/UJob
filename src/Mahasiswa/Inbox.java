@@ -8,7 +8,6 @@ import java.util.List;
 import javax.swing.*;
 
 import Auth.SessionManager;
-
 import java.awt.*;
 import net.miginfocom.swing.MigLayout;
 
@@ -29,6 +28,13 @@ public class Inbox extends JFrame {
 
     public Inbox() {
         inboxDAO = new InboxDAO();
+        // Memastikan ada user yang login sebelum mengambil data
+        if (SessionManager.getInstance().getId() <= 0) {
+            JOptionPane.showMessageDialog(this, "Sesi tidak ditemukan. Silakan login.", "Error", JOptionPane.ERROR_MESSAGE);
+            // Tambahkan logika untuk kembali ke halaman login jika perlu
+            return;
+        }
+
         inboxs = inboxDAO.getCurrentUserAllInbox();
         messages = inboxs.stream()
             .map(i -> new InboxItemData(i.getIsi(), i.getTanggal()))
@@ -67,21 +73,25 @@ public class Inbox extends JFrame {
         contentPanel.add(headerPanel, "growx, wrap, gapbottom 20");
 
         // Panel notifikasi
-        JPanel notificationsPanel = new JPanel(new MigLayout("fillx, ins 0, wrap 1", "[grow]", "[]20[]"));
+        JPanel notificationsPanel = new JPanel(new MigLayout("fillx, ins 0, wrap 1", "[grow]", "[]15[]"));
         notificationsPanel.setOpaque(false);
-        notificationsPanel.setBorder(null);
 
-        for (InboxItemData message : messages) {
-            notificationsPanel.add(createNotificationCard(message), "growx");
+        if (messages.length == 0) {
+            JLabel emptyLabel = new JLabel("Kotak masuk Anda kosong.");
+            emptyLabel.setFont(new Font("SansSerif", Font.ITALIC, 16));
+            emptyLabel.setForeground(COLOR_TEXT_SECONDARY);
+            emptyLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            notificationsPanel.add(emptyLabel, "h 200!, grow, center");
+        } else {
+            for (InboxItemData message : messages) {
+                notificationsPanel.add(createNotificationCard(message), "growx");
+            }
         }
-
+        
         JScrollPane scrollPane = new JScrollPane(notificationsPanel);
         scrollPane.setBorder(null);
-        scrollPane.setOpaque(true);
-        scrollPane.getViewport().setOpaque(true);
         scrollPane.getViewport().setBackground(COLOR_BACKGROUND);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         contentPanel.add(scrollPane, "grow, push");
         mainPanel.add(contentPanel, "grow");
@@ -92,7 +102,7 @@ public class Inbox extends JFrame {
     private JPanel createNotificationCard(InboxItemData data) {
         JPanel cardPanel = new JPanel(new MigLayout("fillx, ins 20 25 20 25", "[grow][]", "[top]"));
         cardPanel.setBackground(COLOR_CARD);
-        cardPanel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, COLOR_BORDER));
+        cardPanel.setBorder(BorderFactory.createLineBorder(COLOR_BORDER));
         cardPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Isi pesan
@@ -106,7 +116,7 @@ public class Inbox extends JFrame {
         dateLabel.setForeground(COLOR_TEXT_SECONDARY);
 
         cardPanel.add(messageLabel, "growx, push, wrap");
-        cardPanel.add(dateLabel, "gapleft 0, span 2, split 2, right");
+        cardPanel.add(dateLabel, "span, align right");
 
         return cardPanel;
     }
@@ -125,6 +135,8 @@ public class Inbox extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                // Simulasi login untuk testing
+                Auth.SessionManager.getInstance().login(1, "dinda", "dindazhrs@upi.edu", "mahasiswa");
             } catch (Exception e) {
                 e.printStackTrace();
             }

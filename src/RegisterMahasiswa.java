@@ -123,19 +123,29 @@ public class RegisterMahasiswa extends javax.swing.JFrame {
         JPanel tab = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         tab.setOpaque(false);
         JButton loginTab = new JButton("Login");
-        loginTab.setPreferredSize(new Dimension(100, 35));
+        loginTab.setPreferredSize(new Dimension(110, 35));
         loginTab.setBackground(Color.WHITE);
         loginTab.setForeground(Color.GRAY);
-        loginTab.setFont(new Font("Arial", Font.PLAIN, 12));
+        loginTab.setFont(new Font("Arial", Font.PLAIN, 11));
         loginTab.setBorder(BorderFactory.createMatteBorder(1,1,1,0, Color.LIGHT_GRAY));
-        JButton registerTab = new JButton("Register");
-        registerTab.setPreferredSize(new Dimension(100, 35));
+
+        JButton registerTab = new JButton("Register Mahasiswa");
+        registerTab.setPreferredSize(new Dimension(110, 35));
         registerTab.setBackground(new Color(37, 64, 143));
         registerTab.setForeground(Color.WHITE);
-        registerTab.setFont(new Font("Arial", Font.PLAIN, 12));
+        registerTab.setFont(new Font("Arial", Font.PLAIN, 11));
         registerTab.setBorder(BorderFactory.createMatteBorder(1,0,1,1, Color.LIGHT_GRAY));
+
+        JButton registerPerusahaanTab = new JButton("Register Perusahaan");
+        registerPerusahaanTab.setPreferredSize(new Dimension(110, 35));
+        registerPerusahaanTab.setBackground(Color.WHITE);
+        registerPerusahaanTab.setForeground(Color.GRAY);
+        registerPerusahaanTab.setFont(new Font("Arial", Font.PLAIN, 11));
+        registerPerusahaanTab.setBorder(BorderFactory.createMatteBorder(1,1,1,0, Color.LIGHT_GRAY));
+        
         tab.add(loginTab);
         tab.add(registerTab);
+        tab.add(registerPerusahaanTab);
         gbc.gridy = 0;
         panel.add(tab, gbc);
         
@@ -144,6 +154,13 @@ public class RegisterMahasiswa extends javax.swing.JFrame {
             new Login().setVisible(true);
             // tutup window Register saat ini
             SwingUtilities.getWindowAncestor(loginTab).dispose();
+        });
+        
+        registerPerusahaanTab.addActionListener(e -> {
+            // buka window Login
+            new RegisterPerusahaan().setVisible(true);
+            // tutup window Register saat ini
+            this.dispose();
         });
 
         // Welcome text
@@ -175,7 +192,7 @@ public class RegisterMahasiswa extends javax.swing.JFrame {
 
         // Password dengan eye-toggle
         JLabel pwdLabel = new JLabel("Password");
-        pwdLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        pwdLabel.setFont(new Font("Arial", Font.PLAIN, 11));
         pwdLabel.setForeground(Color.DARK_GRAY);
         gbc.gridy = y++;
         gbc.insets = new Insets(10, 0, 5, 0);
@@ -250,7 +267,7 @@ public class RegisterMahasiswa extends javax.swing.JFrame {
     private void addLabeledField(JPanel panel, String labelText, JTextField field,
                                   int gridy, GridBagConstraints gbc) {
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.PLAIN, 12));
+        label.setFont(new Font("Arial", Font.PLAIN, 11));
         label.setForeground(Color.DARK_GRAY);
         gbc.gridy = gridy;
         gbc.insets = new Insets(10, 0, 5, 0);

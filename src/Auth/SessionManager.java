@@ -1,3 +1,4 @@
+// File: Auth/SessionManager.java
 package Auth;
 
 public class SessionManager {
@@ -12,7 +13,7 @@ public class SessionManager {
         this.isLoggedIn = false;
     }
 
-    public static SessionManager getInstance() {
+    public static synchronized SessionManager getInstance() {
         if (instance == null) {
             instance = new SessionManager();
         }
@@ -55,4 +56,3 @@ public class SessionManager {
         return isLoggedIn;
     }
 }
-

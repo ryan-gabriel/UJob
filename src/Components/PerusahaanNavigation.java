@@ -1,58 +1,55 @@
+// File: Components/PerusahaanNavigation.java
 package Components;
 
+import Auth.SessionManager;
+import Perusahaan.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-// --- PERUBAHAN DIMULAI: Memperbaiki import untuk Profile ---
-import Perusahaan.Dashboard;
-import Perusahaan.Profile; // Nama kelas diubah sesuai permintaan
-import Perusahaan.KelolaLowongan;
-import Perusahaan.LamaranMasuk;
-import Perusahaan.Inbox;
-// --- PERUBAHAN SELESAI ---
-
 
 public class PerusahaanNavigation extends JPanel {
-
     public PerusahaanNavigation(String activeMenu) {
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(0, 80));
         setBackground(new Color(37, 64, 143));
 
         JPanel navPanel = new JPanel(new BorderLayout());
-        navPanel.setBackground(new Color(37, 64, 143));
+        navPanel.setOpaque(false);
         navPanel.setBorder(new EmptyBorder(15, 40, 15, 40));
 
-        // Logo and brand
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         logoPanel.setOpaque(false);
 
-        JLabel logoCircle = new JLabel("UJOB");
-        logoCircle.setPreferredSize(new Dimension(40, 40));
-        logoCircle.setHorizontalAlignment(SwingConstants.CENTER);
-        logoCircle.setVerticalAlignment(SwingConstants.CENTER);
-        logoCircle.setBackground(Color.WHITE);
-        logoCircle.setOpaque(true);
-        logoCircle.setForeground(new Color(37, 64, 143));
-        logoCircle.setFont(new Font("Arial", Font.BOLD, 12));
-        logoCircle.setBorder(BorderFactory.createEmptyBorder());
+        JLabel logoLabel = new JLabel();
+        try {
+            ImageIcon originalIcon = new ImageIcon(getClass().getResource("/images/Logo.png"));
+            Image scaledImage = originalIcon.getImage().getScaledInstance(45, 45, Image.SCALE_SMOOTH);
+            logoLabel.setIcon(new ImageIcon(scaledImage));
+        } catch (Exception e) {
+            logoLabel.setText("UJ");
+            logoLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            logoLabel.setForeground(new Color(37, 64, 143));
+            logoLabel.setBackground(Color.WHITE);
+            logoLabel.setOpaque(true);
+        }
+        logoLabel.setPreferredSize(new Dimension(50, 50));
+        logoLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        logoLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-        JLabel brandLabel = new JLabel("UPI Job");
+        JLabel brandLabel = new JLabel("UJob");
         brandLabel.setForeground(Color.WHITE);
-        brandLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        brandLabel.setFont(new Font("Arial", Font.BOLD, 24));
         brandLabel.setBorder(new EmptyBorder(0, 10, 0, 0));
 
-        logoPanel.add(logoCircle);
+        logoPanel.add(logoLabel);
         logoPanel.add(brandLabel);
 
-        // Navigation menu
-        String[] menuItems = {"Dashboard", "Profile", "Kelola Lowongan", "Lamaran Masuk", "Inbox"}; //
+        String[] menuItems = {"Dashboard", "Profile", "Kelola Lowongan", "Lamaran Masuk", "Inbox"};
         JPanel menuPanel = new JPanel();
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.X_AXIS));
         menuPanel.setOpaque(false);
-        
         menuPanel.add(Box.createHorizontalGlue());
 
         for (int i = 0; i < menuItems.length; i++) {
@@ -65,48 +62,38 @@ public class PerusahaanNavigation extends JPanel {
             menuLabel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if (item.equals(activeMenu)) {
+                    if (item.equals(activeMenu)) return;
+                    JFrame currentFrame = (JFrame) SwingUtilities.getWindowAncestor(PerusahaanNavigation.this);
+                    int activeUserId = SessionManager.getInstance().getId();
+                    if (activeUserId <= 0) {
+                        JOptionPane.showMessageDialog(currentFrame, "Sesi tidak valid.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
-                    JFrame currentFrame = (JFrame) SwingUtilities.getWindowAncestor(PerusahaanNavigation.this);
-
-                    switch (item) {
-                        case "Dashboard":
-                            new Dashboard().setVisible(true);
-                            break;
-                        // --- PERUBAHAN DIMULAI: Memperbaiki nama kelas Profile ---
-                        case "Profile":
-                            new Profile().setVisible(true); // Diubah dari ProfilePerusahaan menjadi Profile
-                            break;
-                        // --- PERUBAHAN SELESAI ---
-                        case "Kelola Lowongan":
-                            new KelolaLowongan().setVisible(true);
-                            break;
-                        case "Lamaran Masuk":
-                            new LamaranMasuk().setVisible(true);
-                            break;
-                        case "Inbox":
-                            new Inbox().setVisible(true);
-                            break;
-                    }
-
-                    if (currentFrame != null) {
-                        currentFrame.dispose();
+                    try {
+                        switch (item) {
+                            case "Dashboard": new Dashboard(activeUserId).setVisible(true); break;
+                            case "Profile": new Profile(activeUserId).setVisible(true); break;
+                            case "Kelola Lowongan": new KelolaLowongan(activeUserId).setVisible(true); break;
+                            case "Lamaran Masuk": new LamaranMasuk(activeUserId).setVisible(true); break;
+                            // --- PERBAIKAN ADA DI SINI ---
+                            // Menambahkan case untuk navigasi ke halaman Inbox
+                            case "Inbox": new Inbox(activeUserId).setVisible(true); break;
+                        }
+                        if (currentFrame != null) currentFrame.dispose();
+                    } catch (Exception ex) {
+                         JOptionPane.showMessageDialog(PerusahaanNavigation.this, "Halaman " + item + " belum ada.", "Info", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
             });
-
             menuPanel.add(menuLabel);
 
             if (i < menuItems.length - 1) {
                 menuPanel.add(Box.createRigidArea(new Dimension(30, 0)));
             }
         }
-
         navPanel.add(logoPanel, BorderLayout.WEST);
         navPanel.add(menuPanel, BorderLayout.CENTER);
-
         add(navPanel);
     }
 }

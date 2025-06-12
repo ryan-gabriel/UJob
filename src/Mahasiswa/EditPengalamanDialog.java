@@ -14,18 +14,17 @@ public class EditPengalamanDialog extends JDialog {
     private JCheckBox currentlyWorkingCheck;
     private JTextArea descriptionArea;
     private boolean saved = false;
-    private String originalData;
 
     public EditPengalamanDialog(JFrame owner, String data) {
-        super(owner, "Edit Pengalaman", true);
-        this.originalData = data;
+        super(owner, "Tambah/Edit Pengalaman", true);
         initializeUI();
-        // NOTE: Parsing and pre-filling data is complex with the current string format.
-        // This example focuses on providing the form for new or overwritten data.
+        // NOTE: Logika untuk mengisi form dari 'data' (saat mengedit) bisa ditambahkan di sini.
+        // Untuk saat ini, dialog difokuskan untuk menambah entri baru.
     }
 
     private void initializeUI() {
         setSize(550, 650);
+        setResizable(false);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout());
 
@@ -121,8 +120,11 @@ public class EditPengalamanDialog extends JDialog {
     }
     
     private void onSave() {
-        // Simple Validation
-        if (titleField.getText().trim().isEmpty() || companyField.getText().trim().isEmpty() || typeCombo.getSelectedIndex() == 0) {
+        if (titleField.getText().trim().isEmpty() || 
+            companyField.getText().trim().isEmpty() || 
+            typeCombo.getSelectedIndex() == 0 ||
+            startMonthCombo.getSelectedIndex() == 0 ||
+            (!currentlyWorkingCheck.isSelected() && endMonthCombo.getSelectedIndex() == 0)) {
             JOptionPane.showMessageDialog(this, "Mohon isi semua field yang bertanda *", "Input Tidak Lengkap", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -135,31 +137,26 @@ public class EditPengalamanDialog extends JDialog {
         return saved;
     }
     
+    /**
+     * [DIPERBAIKI] Mengembalikan string dengan format 8 bagian yang dipisahkan "||"
+     * agar sesuai dengan parser di Profile.java.
+     * Format: Judul||Tipe Pekerjaan||Nama Perusahaan||Tanggal Mulai||Tanggal Selesai||Lokasi||Tipe Lokasi||Deskripsi
+     */
     public String getUpdatedPengalaman() {
-        StringBuilder sb = new StringBuilder();
-        // Format: Posisi||Perusahaan||Periode||Deskripsi
-        // This is a simplified mapping to fit the old data structure.
-        // A better approach would be to migrate the database schema.
-        
-        sb.append(titleField.getText().trim()); // Posisi
-        sb.append("||");
-        sb.append(companyField.getText().trim()); // Perusahaan
-        sb.append("||");
-        
-        // Periode
-        String start = startMonthCombo.getSelectedItem() + " " + startYearCombo.getSelectedItem();
-        String end = "Sekarang";
-        if (!currentlyWorkingCheck.isSelected()) {
-            end = endMonthCombo.getSelectedItem() + " " + endYearCombo.getSelectedItem();
-        }
-        sb.append(start).append(" - ").append(end).append(" (").append(typeCombo.getSelectedItem()).append(")");
-        sb.append("||");
+        if (!saved) return null;
 
-        // Deskripsi
-        sb.append(descriptionArea.getText().trim());
+        String judul = titleField.getText().trim();
+        String tipePekerjaan = typeCombo.getSelectedItem().toString();
+        String namaPerusahaan = companyField.getText().trim();
+        String tanggalMulai = startMonthCombo.getSelectedItem().toString() + " " + startYearCombo.getSelectedItem().toString();
+        String tanggalSelesai = currentlyWorkingCheck.isSelected() ? "Saat ini" : endMonthCombo.getSelectedItem().toString() + " " + endYearCombo.getSelectedItem().toString();
+        String lokasi = locationField.getText().trim();
+        String tipeLokasi = locationTypeCombo.getSelectedItem().toString();
+        String deskripsi = descriptionArea.getText().trim();
         
-        // This only supports one experience entry. To support multiple,
-        // you would need to append with ';;' and manage a list of experiences.
-        return sb.toString();
+        return String.join("||", 
+                judul, tipePekerjaan, namaPerusahaan, 
+                tanggalMulai, tanggalSelesai, lokasi, 
+                tipeLokasi, deskripsi);
     }
 }

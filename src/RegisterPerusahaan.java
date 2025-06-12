@@ -126,16 +126,26 @@ public class RegisterPerusahaan extends javax.swing.JFrame {
         loginTab.setPreferredSize(new Dimension(100, 35));
         loginTab.setBackground(Color.WHITE);
         loginTab.setForeground(Color.GRAY);
-        loginTab.setFont(new Font("Arial", Font.PLAIN, 12));
+        loginTab.setFont(new Font("Arial", Font.PLAIN, 11));
         loginTab.setBorder(BorderFactory.createMatteBorder(1,1,1,0, Color.LIGHT_GRAY));
-        JButton registerTab = new JButton("Register");
+        
+        JButton registerTab = new JButton("Register Mahasiswa");
         registerTab.setPreferredSize(new Dimension(100, 35));
-        registerTab.setBackground(new Color(37, 64, 143));
-        registerTab.setForeground(Color.WHITE);
-        registerTab.setFont(new Font("Arial", Font.PLAIN, 12));
-        registerTab.setBorder(BorderFactory.createMatteBorder(1,0,1,1, Color.LIGHT_GRAY));
+        registerTab.setBackground(Color.WHITE);
+        registerTab.setForeground(Color.GRAY);
+        registerTab.setFont(new Font("Arial", Font.PLAIN, 11));
+        registerTab.setBorder(BorderFactory.createMatteBorder(1,1,1,0, Color.LIGHT_GRAY));
+        
+        JButton registerPerusahaanTab = new JButton("Register Perusahaan");
+        registerPerusahaanTab.setPreferredSize(new Dimension(100, 35));
+        registerPerusahaanTab.setBackground(new Color(37, 64, 143));
+        registerPerusahaanTab.setForeground(Color.WHITE);
+        registerPerusahaanTab.setFont(new Font("Arial", Font.PLAIN, 11));
+        registerPerusahaanTab.setBorder(BorderFactory.createMatteBorder(1,0,1,1, Color.LIGHT_GRAY));
+
         tab.add(loginTab);
         tab.add(registerTab);
+        tab.add(registerPerusahaanTab);
         gbc.gridy = 0;
         panel.add(tab, gbc);
         
@@ -144,6 +154,12 @@ public class RegisterPerusahaan extends javax.swing.JFrame {
             new Login().setVisible(true);
             // tutup window Register saat ini
             SwingUtilities.getWindowAncestor(loginTab).dispose();
+        });
+       
+        registerTab.addActionListener(e -> {
+            // buka window Login
+            new RegisterMahasiswa().setVisible(true);
+            this.dispose();
         });
 
         // Welcome text

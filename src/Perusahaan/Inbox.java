@@ -1,135 +1,284 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package Perusahaan;
+
+import Components.PerusahaanNavigation;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.HierarchyBoundsAdapter;
-import java.awt.event.HierarchyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.plaf.basic.BasicScrollBarUI;
-// --- PERUBAHAN DIMULAI: Menambahkan import untuk PerusahaanNavigation ---
-import Components.PerusahaanNavigation;
-// --- PERUBAHAN SELESAI ---
-/**
- *
- * @author Rian G S
- */
-public class Inbox extends javax.swing.JFrame {
 
-    // --- PERUBAHAN DIMULAI: Menghapus konstanta yang tidak lagi digunakan ---
-    // private static final Color HEADER_BLUE = new Color(52, 82, 139);
-    // --- PERUBAHAN SELESAI ---
+/**
+ * Kelas untuk menampilkan halaman Inbox Perusahaan.
+ * Mengintegrasikan navigasi terpusat dan menampilkan daftar pesan/notifikasi.
+ *
+ * @author Rian G S & AI Assistant
+ */
+public class Inbox extends JFrame {
+
+    // Konstanta untuk warna UI
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
     private static final Color TEXT_GRAY = new Color(128, 128, 128);
-    private static final Color HOVER_COLOR = new Color(240, 240, 240);
+    private static final Color HOVER_COLOR = new Color(245, 248, 255); // Warna hover yang lebih lembut
+    private static final Color BACKGROUND_WHITE = Color.WHITE;
+
+    private JPanel inboxContainer;
+    private final int userId;
+
     /**
-     * Creates new form Inbox
+     * Konstruktor untuk membuat frame Inbox.
+     * @param userId ID pengguna yang sedang login, untuk konsistensi dengan frame lain.
      */
-    public Inbox() {
-        initComponents();
+    public Inbox(int userId) {
+        this.userId = userId;
         initializeUI();
         populateInboxData();
     }
+    
+    /**
+     * Menginisialisasi komponen utama UI, layout, dan navigasi.
+     */
+    private void initializeUI() {
+        setTitle("UJob - Inbox Perusahaan");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1200, 700);
+        setLocationRelativeTo(null);
+        
+        Container contentPane = getContentPane();
+        contentPane.setLayout(new BorderLayout());
+        contentPane.setBackground(BACKGROUND_WHITE);
+
+        PerusahaanNavigation navigationPanel = new PerusahaanNavigation("Inbox");
+        contentPane.add(navigationPanel, BorderLayout.NORTH);
+        
+        contentPane.add(createMainContent(), BorderLayout.CENTER);
+    }
+    
+    /**
+     * Membuat panel konten utama yang berisi judul dan daftar inbox.
+     * @return JPanel yang berisi seluruh konten utama.
+     */
+    private JPanel createMainContent() {
+        JPanel mainPanel = new JPanel(new BorderLayout(0, 20));
+        mainPanel.setBorder(new EmptyBorder(20, 40, 40, 40));
+        mainPanel.setBackground(BACKGROUND_WHITE);
+        
+        JLabel pageTitle = new JLabel("Kotak Masuk (Inbox)");
+        pageTitle.setFont(new Font("Arial", Font.BOLD, 28));
+        pageTitle.setForeground(Color.BLACK);
+        
+        JPanel inboxHeader = createInboxHeader();
+        
+        JScrollPane inboxScrollPane = createInboxScrollPane();
+        
+        JPanel headerWrapper = new JPanel(new BorderLayout());
+        headerWrapper.setBackground(BACKGROUND_WHITE);
+        headerWrapper.add(pageTitle, BorderLayout.NORTH);
+        headerWrapper.add(inboxHeader, BorderLayout.CENTER);
+        
+        mainPanel.add(headerWrapper, BorderLayout.NORTH);
+        mainPanel.add(inboxScrollPane, BorderLayout.CENTER);
+        
+        return mainPanel;
+    }
+    
+    /**
+     * Membuat header untuk area inbox, seperti label "Inbox Terbaru".
+     * @return JPanel header.
+     */
+    private JPanel createInboxHeader() {
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        header.setBackground(BACKGROUND_WHITE);
+        header.setBorder(new EmptyBorder(10, 0, 0, 0));
+        
+        JLabel inboxLabel = new JLabel("Inbox Terbaru");
+        inboxLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        inboxLabel.setForeground(Color.BLACK);
+        
+        header.add(inboxLabel);
+        
+        return header;
+    }
+    
+    /**
+     * Membuat JScrollPane yang akan menampung semua item inbox.
+     * @return JScrollPane yang telah dikonfigurasi.
+     */
+    private JScrollPane createInboxScrollPane() {
+        inboxContainer = new JPanel();
+        inboxContainer.setLayout(new BoxLayout(inboxContainer, BoxLayout.Y_AXIS));
+        inboxContainer.setBackground(BACKGROUND_WHITE);
+        
+        JScrollPane scrollPane = new JScrollPane(inboxContainer);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(null);
+        scrollPane.getViewport().setBackground(BACKGROUND_WHITE);
+        
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUI(new ThinScrollBarUI());
+        
+        return scrollPane;
+    }
+    
+    /**
+     * Mengisi inbox dengan data sampel.
+     */
+    private void populateInboxData() {
+        addInboxItem("Lamaran Masuk", "Lamaran dari Dhafin Salman", 
+                    "Mahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat Lunak, telah melamar posisi \"Pengembang Web\" yang Anda posting pada 21/05/2025.", 
+                    "21 Mei 2025");
+        
+        addInboxItem("Lamaran Masuk", "Lamaran dari Ryan Gabriel", 
+                    "Mahasiswa bernama Ryan Gabriel dari program studi Rekayasa Perangkat Lunak telah melamar posisi \"Pengembang Web\" yang Anda posting pada 21/05/2025.", 
+                    "21 Mei 2025");
+        
+        addInboxItem("Lamaran Masuk", "Lamaran dari John Doe", 
+                    "Mahasiswa bernama John Doe dari program studi Teknik Komputer telah melamar posisi \"Magang Pengembang AI\" yang Anda posting pada 21/05/2025.", 
+                    "21 Mei 2025");
+        
+        addInboxItem("Lowongan Dibuat", "Dibuat oleh PT Pactindo", 
+                    "Anda telah membuat lowongan \"Pengembang Web\" pada tanggal 21/05/2025.", 
+                    "20 Mei 2025");
+    }
+    
+    /**
+     * Membuat dan menambahkan satu item ke dalam kontainer inbox.
+     */
+    private void addInboxItem(String type, String title, String description, String date) {
+        JPanel itemPanel = new JPanel(new BorderLayout(0, 8));
+        itemPanel.setBackground(BACKGROUND_WHITE);
+        itemPanel.setBorder(BorderFactory.createCompoundBorder(
+            new MatteBorder(0, 0, 1, 0, BORDER_COLOR),
+            new EmptyBorder(20, 20, 20, 20)
+        ));
+        itemPanel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        
+        JLabel typeLabel = new JLabel(type);
+        typeLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        typeLabel.setForeground(Color.BLACK);
+        
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        titleLabel.setForeground(TEXT_GRAY);
+        
+        JPanel leftHeaderContent = new JPanel();
+        leftHeaderContent.setLayout(new BoxLayout(leftHeaderContent, BoxLayout.Y_AXIS));
+        leftHeaderContent.setOpaque(false);
+        leftHeaderContent.add(typeLabel);
+        leftHeaderContent.add(Box.createVerticalStrut(5));
+        leftHeaderContent.add(titleLabel);
+        
+        JLabel dateLabel = new JLabel(date);
+        dateLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        dateLabel.setForeground(TEXT_GRAY);
+        
+        headerPanel.add(leftHeaderContent, BorderLayout.CENTER);
+        headerPanel.add(dateLabel, BorderLayout.EAST);
+        
+        JTextArea descArea = new JTextArea(description);
+        descArea.setFont(new Font("Arial", Font.PLAIN, 13));
+        descArea.setForeground(new Color(51, 51, 51));
+        descArea.setOpaque(false);
+        descArea.setEditable(false);
+        descArea.setFocusable(false);
+        descArea.setLineWrap(true);
+        descArea.setWrapStyleWord(true);
+
+        itemPanel.add(headerPanel, BorderLayout.NORTH);
+        itemPanel.add(descArea, BorderLayout.CENTER);
+
+        MouseAdapter hoverAdapter = new MouseAdapter() {
+            private final Component[] components = {itemPanel, headerPanel, leftHeaderContent, descArea};
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                for (Component comp : components) {
+                    comp.setBackground(HOVER_COLOR);
+                }
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                for (Component comp : components) {
+                    comp.setBackground(BACKGROUND_WHITE);
+                }
+            }
+        };
+
+        itemPanel.addMouseListener(hoverAdapter);
+        descArea.addMouseListener(hoverAdapter);
+        
+        inboxContainer.add(itemPanel);
+    }
+    
+    /**
+     * Main method untuk menjalankan frame.
+     */
+    public static void main(String args[]) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ex) {
+            java.util.logging.Logger.getLogger(Inbox.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+
+        EventQueue.invokeLater(() -> {
+            new Inbox(1).setVisible(true);
+        });
+    }
 
     /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
+     * Kustomisasi UI untuk JScrollBar agar lebih tipis dan modern.
      */
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    static class ThinScrollBarUI extends BasicScrollBarUI {
+        private final int SCROLL_BAR_WIDTH = 8;
+        private final Color THUMB_COLOR = new Color(180, 180, 180);
+        private final Color TRACK_COLOR = new Color(245, 245, 245);
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1200, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 700, Short.MAX_VALUE)
-        );
-
-        pack();
-    }// </editor-fold>//GEN-END:initComponents
-
-    public class ThinScrollBarUI extends BasicScrollBarUI {
-
-        private static final int SCROLL_BAR_WIDTH = 6;
+        // --- PERBAIKAN UTAMA ADA DI SINI ---
+        @Override
+        public Dimension getPreferredSize(JComponent c) {
+            // Memeriksa orientasi scrollbar dan mengembalikan dimensi yang tetap.
+            // Ini menghindari pemanggilan rekursif yang menyebabkan StackOverflowError.
+            if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
+                return new Dimension(SCROLL_BAR_WIDTH, 0);
+            } else {
+                return new Dimension(0, SCROLL_BAR_WIDTH);
+            }
+        }
+        // --- AKHIR PERBAIKAN ---
 
         @Override
         protected void configureScrollBarColors() {
-            thumbColor = new Color(100, 100, 100, 150);
-            trackColor = new Color(0, 0, 0, 0);
-        }
-
-        @Override
-        public Dimension getPreferredSize(JComponent c) {
-            return scrollbar.getOrientation() == JScrollBar.VERTICAL
-                ? new Dimension(SCROLL_BAR_WIDTH, 0)
-                : new Dimension(0, SCROLL_BAR_WIDTH);
+            thumbColor = THUMB_COLOR;
+            trackColor = TRACK_COLOR;
         }
 
         @Override
         protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            g2.setColor(new Color(200, 200, 200, 60));
-
-            int arc = 8;
-            int padding = 4;
-
-            if (scrollbar.getOrientation() == JScrollBar.VERTICAL) {
-                int x = trackBounds.x;
-                int y = trackBounds.y + padding;
-                int width = SCROLL_BAR_WIDTH;
-                int height = trackBounds.height - (2 * padding);
-
-                g2.fillRoundRect(x, y, width, height, arc, arc);
-            } else {
-                int x = trackBounds.x + padding;
-                int y = trackBounds.y;
-                int width = trackBounds.width - (2 * padding);
-                int height = SCROLL_BAR_WIDTH;
-
-                g2.fillRoundRect(x, y, width, height, arc, arc);
-            }
-
-            g2.dispose();
+            g.setColor(trackColor);
+            g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
         }
 
         @Override
         protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
-            if (!scrollbar.isEnabled() || thumbBounds.width > thumbBounds.height) return;
-
+            if (thumbBounds.isEmpty() || !scrollbar.isEnabled()) return;
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
             g2.setColor(thumbColor);
-            g2.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 8, 8);
-
+            g2.fillRoundRect(thumbBounds.x, thumbBounds.y, thumbBounds.width, thumbBounds.height, 10, 10);
             g2.dispose();
         }
 
         @Override
-        protected JButton createDecreaseButton(int orientation) {
-            return createZeroButton();
-        }
+        protected JButton createDecreaseButton(int orientation) { return createZeroButton(); }
 
         @Override
-        protected JButton createIncreaseButton(int orientation) {
-            return createZeroButton();
-        }
+        protected JButton createIncreaseButton(int orientation) { return createZeroButton(); }
 
         private JButton createZeroButton() {
             JButton button = new JButton();
@@ -139,296 +288,4 @@ public class Inbox extends javax.swing.JFrame {
             return button;
         }
     }
-    
-    private void initializeUI() {
-        setTitle("UPI Job - Inbox System");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 700);
-        setLocationRelativeTo(null);
-        
-        setLayout(new BorderLayout());
-        getContentPane().setBackground(Color.WHITE);
-        
-        // --- PERUBAHAN DIMULAI: Menggunakan PerusahaanNavigation ---
-        // Header lama dihapus dan diganti dengan komponen navigasi terpusat
-        PerusahaanNavigation navigationPanel = new PerusahaanNavigation("Inbox");
-        add(navigationPanel, BorderLayout.NORTH);
-        // --- PERUBAHAN SELESAI ---
-        
-        // Create main content area
-        createMainContent();
-    }
-    
-    // --- PERUBAHAN DIMULAI: Menghapus metode createHeader() dan createNavLabel() ---
-    /*
-    private void createHeader() { ... }
-    private JLabel createNavLabel(String text, boolean isActive) { ... }
-    */
-    // --- PERUBAHAN SELESAI ---
-    
-    private void createMainContent() {
-        // Main content container
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-        mainPanel.setBackground(Color.WHITE);
-        
-        // Page title
-        JLabel pageTitle = new JLabel("PT Pactindo's Inbox");
-        pageTitle.setFont(new Font("Arial", Font.BOLD, 24));
-        pageTitle.setForeground(Color.BLACK);
-        pageTitle.setBorder(new EmptyBorder(0, 0, 30, 0));
-        
-        // Inbox header with filter
-        JPanel inboxHeader = createInboxHeader();
-        
-        // Scrollable inbox container
-        JScrollPane inboxScrollPane = createInboxScrollPane();
-        inboxScrollPane.getVerticalScrollBar().setUI(new ThinScrollBarUI());
-        inboxScrollPane.getVerticalScrollBar().setBorder(null);
-
-        // Assemble main content
-        JPanel contentWrapper = new JPanel(new BorderLayout());
-        contentWrapper.add(pageTitle, BorderLayout.NORTH);
-        contentWrapper.add(inboxHeader, BorderLayout.CENTER);
-        contentWrapper.setBackground(Color.WHITE);
-        
-        mainPanel.add(contentWrapper, BorderLayout.NORTH);
-        mainPanel.add(inboxScrollPane, BorderLayout.CENTER);
-        
-        add(mainPanel, BorderLayout.CENTER);
-    }
-    
-    private JPanel createInboxHeader() {
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        header.setBackground(Color.WHITE);
-        header.setBorder(new EmptyBorder(0, 0, 20, 0));
-        
-        JLabel inboxLabel = new JLabel("Inbox Terbaru");
-        inboxLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        inboxLabel.setForeground(Color.BLACK);
-        
-        JLabel infoIcon = new JLabel("ⓘ");
-        infoIcon.setFont(new Font("Arial", Font.PLAIN, 14));
-        infoIcon.setForeground(TEXT_GRAY);
-        infoIcon.setBorder(new EmptyBorder(0, 8, 0, 0));
-        
-        header.add(inboxLabel);
-        header.add(infoIcon);
-        
-        return header;
-    }
-    
-    private JScrollPane createInboxScrollPane() {
-        JPanel inboxContainer = new JPanel();
-        inboxContainer.setLayout(new BoxLayout(inboxContainer, BoxLayout.Y_AXIS));
-        inboxContainer.setBackground(Color.WHITE);
-        
-        this.inboxContainer = inboxContainer;
-        
-        JScrollPane scrollPane = new JScrollPane(inboxContainer);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setBorder(null);
-        scrollPane.getViewport().setBackground(Color.WHITE);
-        
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        
-        return scrollPane;
-    }
-    
-    private JPanel inboxContainer;
-    
-    private void populateInboxData() {
-        // Sample data - in real app, this would come from database
-        addInboxItem("Lamaran Masuk", "Lamaran dari Dhafin Salman", 
-                    "Mahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat LunakMahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat LunakMahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat LunakMahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat LunakMahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat LunakMahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat LunakMahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat LunakMahasiswa bernama Dhafin Salman dari program studi Rekayasa Perangkat Lunak, telah melamar posisi \"Pengembang Web\" yang Anda posting pada 21/05/2025", 
-                    "21 - 05 - 2025");
-        
-        addInboxItem("Lamaran Masuk", "Lamaran dari Ryan Gabriel", 
-                    "Mahasiswa bernama Ryan Gabriel dari program studi Rekayasa Perangkat Lunak telah melamar posisi \"Pengembang Web\" yang Anda posting pada 21/05/2025.", 
-                    "21 - 05 - 2025");
-        
-        addInboxItem("Lamaran Masuk", "Lamaran dari John Doe", 
-                    "Mahasiswa bernama John Doe dari program studi Teknik Komputer telah melamar posisi \"Magang Pengembang AI\" yang Anda posting pada 21/05/2025.", 
-                    "21 - 05 - 2025");
-        
-        addInboxItem("Lowongan Dibuat", "Dibuat oleh PT Pactindo", 
-                    "Anda telah membuat lowongan \"Pengembang Web\" pada tanggal 21/05/2025.", 
-                    "21 - 05 - 2025");
-        
-        addInboxItem("Lowongan Dibuat", "Dibuat oleh PT Pactindo", 
-                    "Anda telah membuat lowongan \"Magang Pengembang AI\" pada tanggal 21/05/2025.", 
-                    "21 - 05 - 2025");
-    }
-    
-    private void addInboxItem(String type, String title, String description, String date) {
-        // ... (kode untuk addInboxItem tetap sama)
-        JPanel itemPanel = new JPanel(new BorderLayout());
-    itemPanel.setBackground(Color.WHITE);
-    itemPanel.setBorder(BorderFactory.createCompoundBorder(
-        new MatteBorder(0, 0, 1, 0, BORDER_COLOR),
-        new EmptyBorder(20, 5, 20, 5)
-    ));
-    
-    JPanel headerPanel = new JPanel(new BorderLayout());
-    headerPanel.setBackground(Color.WHITE);
-    headerPanel.setOpaque(false);
-    
-    JPanel leftHeaderContent = new JPanel();
-    leftHeaderContent.setLayout(new BoxLayout(leftHeaderContent, BoxLayout.Y_AXIS));
-    leftHeaderContent.setBackground(Color.WHITE);
-    leftHeaderContent.setOpaque(false);
-    
-    JLabel typeLabel = new JLabel(type);
-    typeLabel.setFont(new Font("Arial", Font.BOLD, 16));
-    typeLabel.setForeground(Color.BLACK);
-    typeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    
-    JLabel titleLabel = new JLabel(title);
-    titleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-    titleLabel.setForeground(TEXT_GRAY);
-    titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-    
-    leftHeaderContent.add(typeLabel);
-    leftHeaderContent.add(Box.createVerticalStrut(5));
-    leftHeaderContent.add(titleLabel);
-    
-    JLabel dateLabel = new JLabel(date);
-    dateLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-    dateLabel.setForeground(TEXT_GRAY);
-    dateLabel.setVerticalAlignment(SwingConstants.TOP);
-    
-    JPanel datePanel = new JPanel(new BorderLayout());
-    datePanel.setBackground(Color.WHITE);
-    datePanel.setOpaque(false);
-    datePanel.setPreferredSize(new Dimension(120, 0));
-    datePanel.add(dateLabel, BorderLayout.CENTER);
-    
-    headerPanel.add(leftHeaderContent, BorderLayout.CENTER);
-    headerPanel.add(datePanel, BorderLayout.EAST);
-    
-    JPanel descriptionPanel = new JPanel(new BorderLayout());
-    descriptionPanel.setBackground(Color.WHITE);
-    descriptionPanel.setOpaque(false);
-    descriptionPanel.setBorder(new EmptyBorder(8, 0, 0, 0));
-    
-    JTextArea descArea = new JTextArea(description);
-    descArea.setFont(new Font("Arial", Font.PLAIN, 13));
-    descArea.setForeground(new Color(51, 51, 51));
-    descArea.setOpaque(false);
-    descArea.setEditable(false);
-    descArea.setFocusable(false);
-    descArea.setLineWrap(true);
-    descArea.setWrapStyleWord(true);
-    descArea.setBorder(null);
-    
-    descArea.setColumns(0);
-    descArea.setRows(0);
-    
-    descriptionPanel.add(descArea, BorderLayout.CENTER);
-    
-    itemPanel.add(headerPanel, BorderLayout.NORTH);
-    itemPanel.add(descriptionPanel, BorderLayout.CENTER);
-    
-    Runnable updateDescWidth = () -> {
-        SwingUtilities.invokeLater(() -> {
-            int containerWidth = itemPanel.getWidth();
-            if (containerWidth > 0) {
-                int availableWidth = containerWidth - 50 - 120;
-                int maxDescWidth = Math.max(200, (int)(availableWidth * 0.9));
-                
-                descArea.setPreferredSize(new Dimension(maxDescWidth, descArea.getPreferredSize().height));
-                descArea.setSize(maxDescWidth, descArea.getHeight());
-                descriptionPanel.revalidate();
-                descriptionPanel.repaint();
-            }
-        });
-    };
-    
-    itemPanel.addComponentListener(new ComponentAdapter() {
-        @Override
-        public void componentResized(ComponentEvent e) {
-            updateDescWidth.run();
-        }
-    });
-    
-    itemPanel.addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
-        @Override
-        public void ancestorResized(HierarchyEvent e) {
-            updateDescWidth.run();
-        }
-    });
-    
-    SwingUtilities.invokeLater(updateDescWidth);
-    
-    itemPanel.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            itemPanel.setBackground(HOVER_COLOR);
-            descArea.setBackground(HOVER_COLOR);
-        }
-        
-        @Override
-        public void mouseExited(MouseEvent e) {
-            itemPanel.setBackground(Color.WHITE);
-            descArea.setBackground(Color.WHITE);
-        }
-    });
-    
-    descArea.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseEntered(MouseEvent e) {
-            itemPanel.setBackground(HOVER_COLOR);
-            descArea.setBackground(HOVER_COLOR);
-        }
-        
-        @Override
-        public void mouseExited(MouseEvent e) {
-            itemPanel.setBackground(Color.WHITE);
-            descArea.setBackground(Color.WHITE);
-        }
-    });
-    
-    inboxContainer.add(itemPanel);
-    }
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Inbox.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Inbox.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Inbox.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Inbox.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Inbox().setVisible(true);
-            }
-        });
-    }
-
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    @SuppressWarnings("unused")
-    private javax.swing.JScrollPane jScrollPane2;
-    // End of variables declaration//GEN-END:variables
 }
